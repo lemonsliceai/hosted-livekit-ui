@@ -13,7 +13,7 @@ A React component that puts a talking LemonSlice avatar on your site.
 ## 1. See it in action (spin up the example)
 
 ```bash
-git clone git@github.com:<your-org>/hosted-call-xyz.git lemonslice
+git clone git@github.com:lemonsliceai/hosted-call-xyz.git lemonslice
 cd lemonslice
 
 pnpm i                      # build the package
@@ -31,7 +31,7 @@ Open <http://localhost:3001> and play with your UI.
 ```json
 {
   "dependencies": {
-    "@lemonslice/hosted-call": "github:<your-org>/hosted-call-xyz#v0.1.0"
+    "@lemonslice/hosted-call": "github:lemonsliceai/hosted-call-xyz#v0.1.0"
   }
 }
 ```
