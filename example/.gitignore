@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.env
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+*.log
+npm-debug.log*
+.DS_Store
+.vercel
+
+# Using pnpm; other lockfiles would shadow pnpm-lock.yaml
+package-lock.json
+yarn.lock

@@ -1,0 +1,23 @@
+{
+  "name": "lemonslice-hosted-call-example",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001"
+  },
+  "dependencies": {
+    "@lemonslice/hosted-call": "file:..",
+    "next": "^15.5.4",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5.9.3"
+  },
+  "description": "Local dev harness for @lemonslice/hosted-call. Not shipped to customers."
+}
