@@ -5,8 +5,10 @@ export type AvatarConfig = {
   prompt: string;
   /** Fish Audio voice ID. */
   voiceId: string;
-  /** Public `https://` image URL. */
+  /** Public image URL. */
   agentImageUrl: string;
+  /** Overrides the handler's `webhookUrl` for this visitor. */
+  webhookUrl?: string;
 };
 
 export type CreateRoomHandlerOptions = {
@@ -14,6 +16,10 @@ export type CreateRoomHandlerOptions = {
   apiKey: string;
   /** LemonSlice rooms endpoint. */
   lemonSliceUrl: string;
+  /**
+   * Optional URL on your server that LemonSlice POSTs session events to
+   */
+  webhookUrl?: string;
   /**
    * Avatar config, or a function of the request if it varies per visitor.
    */
@@ -39,6 +45,7 @@ export type CreateRoomHandlerOptions = {
 export function createRoomHandler({
   apiKey,
   lemonSliceUrl,
+  webhookUrl,
   room,
   authorize,
 }: CreateRoomHandlerOptions) {
@@ -58,8 +65,9 @@ export function createRoomHandler({
       return Response.json({ error: "LEMONSLICE_API_KEY is not set" }, { status: 500 });
     }
 
-    const { prompt, voiceId, agentImageUrl } =
-      typeof room === "function" ? await room(request) : room;
+    const config = typeof room === "function" ? await room(request) : room;
+    const { prompt, voiceId, agentImageUrl } = config;
+    const sessionWebhookUrl = config.webhookUrl ?? webhookUrl;
 
     let upstream: Response;
     try {
@@ -72,6 +80,7 @@ export function createRoomHandler({
           voice_id: voiceId,
           agent_image_url: agentImageUrl,
           supports_vp9: supportsVp9,
+          ...(sessionWebhookUrl ? { webhook_url: sessionWebhookUrl } : {}),
         }),
       });
     } catch (error) {

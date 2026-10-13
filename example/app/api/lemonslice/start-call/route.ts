@@ -16,6 +16,9 @@ export const POST = createRoomHandler({
   lemonSliceUrl: process.env.LEMONSLICE_API_URL ?? "https://lemonslice.com/api/liveai/rooms",
   room: { prompt: PROMPT, voiceId: VOICE_ID, agentImageUrl: AGENT_IMAGE_URL },
 
+  // Usage (every 60s) and session-end events:
+  // webhookUrl: "https://your-app.com/api/lemonslice/webhook",
+
   // Per-visitor config instead of constants:
   //
   // room: async (request) => {

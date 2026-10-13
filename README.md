@@ -64,6 +64,9 @@ export const POST = createRoomHandler({
   apiKey: process.env.LEMONSLICE_API_KEY!,
   lemonSliceUrl: process.env.LEMONSLICE_API_URL!,
 
+  // Optional: receive usage and session-end events (see below).
+  webhookUrl: "https://your-app.com/api/lemonslice/webhook",
+
   room: {
     prompt: "You are a friendly product guide. Keep answers to one or two sentences.",
     voiceId: "b545c585f631496c914815291da4e893",
@@ -92,6 +95,19 @@ room: async (request) => {
 | `prompt` | Prompt for the LLM to be used as the avatar's knowledge base. Max 40,000 characters. |
 | `voiceId` | Fish Audio voice ID. |
 | `agentImageUrl` | Public `https://` image of the avatar. |
+| `webhookUrl` | Optional. Overrides the handler's `webhookUrl` for this visitor. |
+
+### Webhook events
+
+If `webhookUrl` is set (it must be `https://`), LemonSlice POSTs JSON to it for each call:
+
+| Event | When | |
+| --- | --- | --- |
+| `session.usage` | Every 60 seconds | `credits_used_total`: credits used so far in this session. |
+| `session.ended` | Once, when the session ends | Final `credits_used_total`, `full_transcript`. |
+
+Each event carries the `session_id` returned when the call started, so you can match it
+to your user.
 
 ## 5. Import the styles
 
