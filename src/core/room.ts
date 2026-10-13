@@ -1,5 +1,7 @@
 // Avoid editing
 
+import { supportsVP9 } from "livekit-client";
+
 export type RoomConnection = {
   /** LiveKit token. */
   token: string;
@@ -22,7 +24,12 @@ export async function createRoom(
   { startCallUrl }: RoomRequest,
   signal?: AbortSignal,
 ): Promise<RoomConnection> {
-  const response = await fetch(startCallUrl, { method: "POST", signal });
+  const response = await fetch(startCallUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ supports_vp9: supportsVP9() }),
+    signal,
+  });
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");

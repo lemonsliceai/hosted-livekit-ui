@@ -43,6 +43,12 @@ export function createRoomHandler({
   authorize,
 }: CreateRoomHandlerOptions) {
   return async function handleCreateRoom(request: Request): Promise<Response> {
+    const browser = (await request
+      .clone()
+      .json()
+      .catch(() => ({}))) as { supports_vp9?: unknown };
+    const supportsVp9 = browser?.supports_vp9 === true;
+
     if (authorize) {
       const rejection = await authorize(request);
       if (rejection) return rejection;
@@ -65,6 +71,7 @@ export function createRoomHandler({
           prompt,
           voice_id: voiceId,
           agent_image_url: agentImageUrl,
+          supports_vp9: supportsVp9,
         }),
       });
     } catch (error) {
