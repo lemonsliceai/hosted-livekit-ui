@@ -1,4 +1,4 @@
-# @lemonslice/hosted-call
+# @lemonslice/hosted-call-ui
 
 A React component that puts a talking LemonSlice avatar on your site.
 

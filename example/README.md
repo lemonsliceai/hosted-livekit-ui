@@ -3,9 +3,6 @@
 A tiny Next.js app that runs `<LemonSliceCall>` so you can see it working. It is the
 quickest way to test the component and any changes you make to it.
 
-It uses no Tailwind of its own — the component's CSS is prebuilt, so `app/layout.tsx`
-just imports `@lemonslice/hosted-call/styles.css`, the same as your app would.
-
 ## Run it
 
 From the repo root:
