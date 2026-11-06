@@ -1,53 +1,82 @@
 "use client";
 
-import { iconButton } from "./buttons";
-import { MicrophoneIcon, MicrophoneSlashIcon, PhoneIcon } from "./icons";
+import type { ReactNode } from "react";
+import {
+  controlButton,
+  controlButtonOn,
+  controlSize,
+  controlSizeCompact,
+  hangupButton,
+  hangupSize,
+  hangupSizeCompact,
+} from "./buttons";
+import { ChatIcon, MicrophoneIcon, MicrophoneSlashIcon, PhoneIcon } from "./icons";
 
 export type CallControlsBarProps = {
   micEnabled: boolean;
-  micPending: boolean;
+  micDisabled?: boolean;
+  muted?: boolean;
   onToggleMic: () => void;
   onHangUp: () => void;
+  transcriptOpen: boolean;
+  onToggleTranscript: () => void;
+  /** 44px circles with an inline composer, used in the narrow transcript sheet. */
+  compact?: boolean;
+  composer?: ReactNode;
 };
 
 export function CallControlsBar({
   micEnabled,
-  micPending,
+  micDisabled = false,
+  muted = false,
   onToggleMic,
   onHangUp,
+  transcriptOpen,
+  onToggleTranscript,
+  compact = false,
+  composer,
 }: CallControlsBarProps) {
+  const size = compact ? controlSizeCompact : controlSize;
+
   return (
-    <div className="flex shrink-0 self-stretch mx-auto w-[min(100%,600px)] min-w-0 px-3">
-      <div className="flex w-full min-w-0 items-center gap-2">
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <button
-            type="button"
-            className={micEnabled ? iconButton.solid : iconButton.outline}
-            disabled={micPending}
-            onClick={onToggleMic}
-            title={micEnabled ? "Mute" : "Unmute"}
-            aria-label={micEnabled ? "Mute" : "Unmute"}
-          >
-            {micEnabled ? (
-              <MicrophoneIcon className="w-5 h-5" />
-            ) : (
-              <MicrophoneSlashIcon className="w-5 h-5 text-red-500" />
-            )}
-          </button>
-        </div>
-
-        <div className="w-0 min-w-0 flex-1" />
-
-        <button
-          type="button"
-          className={iconButton.destructive}
-          onClick={onHangUp}
-          title="Hang up"
-          aria-label="Hang up"
-        >
-          <PhoneIcon className="w-5 h-5 rotate-[135deg] translate-y-0.5" />
-        </button>
-      </div>
+    <div
+      className={
+        compact
+          ? "flex w-full min-w-0 items-center gap-2"
+          : "flex w-full items-start justify-center gap-3"
+      }
+    >
+      <button
+        type="button"
+        className={`${controlButton} ${size} ${micEnabled ? controlButtonOn : ""}`}
+        disabled={micDisabled}
+        onClick={onToggleMic}
+        aria-pressed={micEnabled}
+        aria-label={muted ? "Unmute" : "Mute"}
+        title={muted ? "Unmute" : "Mute"}
+      >
+        {muted || !micEnabled ? <MicrophoneSlashIcon /> : <MicrophoneIcon />}
+      </button>
+      <button
+        type="button"
+        className={`${controlButton} ${size} ${transcriptOpen ? controlButtonOn : ""}`}
+        onClick={onToggleTranscript}
+        aria-pressed={transcriptOpen}
+        aria-label={transcriptOpen ? "Hide transcript" : "Show transcript"}
+        title={transcriptOpen ? "Hide transcript" : "Show transcript"}
+      >
+        <ChatIcon />
+      </button>
+      {composer}
+      <button
+        type="button"
+        className={`${hangupButton} ${compact ? hangupSizeCompact : hangupSize}`}
+        onClick={onHangUp}
+        aria-label="Hang up"
+        title="Hang up"
+      >
+        <PhoneIcon className="rotate-[135deg]" />
+      </button>
     </div>
   );
 }

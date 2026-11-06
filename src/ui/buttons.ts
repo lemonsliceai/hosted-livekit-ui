@@ -1,21 +1,29 @@
-const BASE =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0";
+const FOCUS =
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ls-focus)]";
 
-const SOLID =
-  "bg-[rgb(var(--ls-primary-rgb))] text-[rgb(var(--ls-primary-foreground-rgb))] hover:bg-[rgb(var(--ls-primary-rgb)/0.9)]";
+export const controlButton = [
+  "inline-flex shrink-0 items-center justify-center rounded-full border border-[var(--ls-glass-border)]",
+  "bg-[var(--ls-glass)] text-[var(--ls-icon)] backdrop-blur-[8px] transition-colors",
+  "hover:bg-[var(--ls-glass-hover)] disabled:opacity-40",
+  FOCUS,
+].join(" ");
 
-const OUTLINE =
-  "border border-[rgb(var(--ls-border-rgb))] bg-transparent text-[rgb(var(--ls-foreground-rgb))] hover:bg-[rgb(var(--ls-muted-rgb))]";
+export const controlButtonOn = "ls-on";
 
-const DESTRUCTIVE =
-  "bg-[rgb(var(--ls-destructive-rgb))] text-[rgb(var(--ls-destructive-foreground-rgb))] hover:bg-[rgb(var(--ls-destructive-rgb)/0.9)]";
+export const hangupButton = [
+  "inline-flex shrink-0 items-center justify-center rounded-full border border-[var(--ls-glass-border)]",
+  "bg-[var(--ls-hangup)] text-white backdrop-blur-[8px] transition-colors hover:bg-[var(--ls-hangup-hover)]",
+  FOCUS,
+].join(" ");
 
-/** Round 44px icon button */
-export const iconButton = {
-  solid: `${BASE} h-11 w-11 rounded-full ${SOLID}`,
-  outline: `${BASE} h-11 w-11 rounded-full ${OUTLINE}`,
-  destructive: `${BASE} h-11 w-11 rounded-full shrink-0 ${DESTRUCTIVE}`,
-};
+export const startButton = [
+  "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border",
+  "border-[var(--ls-start-border)] bg-[var(--ls-start-bg)] px-5 py-3 text-base font-semibold leading-none",
+  "text-[var(--ls-start-fg)] backdrop-blur-[8px] transition-colors hover:bg-[var(--ls-start-bg-hover)]",
+  FOCUS,
+].join(" ");
 
-/** Wide pill used for "Start call" and the disabled "Calling…" state. */
-export const pillButton = `${BASE} h-11 px-6 rounded-full ${SOLID}`;
+export const controlSize = "px-5 py-3";
+export const controlSizeCompact = "size-11";
+export const hangupSize = "px-5 py-3";
+export const hangupSizeCompact = "size-11";

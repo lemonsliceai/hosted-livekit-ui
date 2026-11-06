@@ -1,5 +1,16 @@
 // Avoid editing
 
+/**
+ * Early-access prompt overrides. Only read for models LemonSlice has enabled on
+ * your account; ask us for the guide before setting these. Each field is optional
+ * and capped at 40,000 characters. Omit one to keep its default.
+ */
+export type AgentOverrides = {
+  jevPrompt?: string;
+  directorPrompt?: string;
+  directorSuffix?: string;
+};
+
 export type AvatarConfig = {
   /** System instructions for the avatar. Max 40000 characters. */
   prompt: string;
@@ -9,7 +20,34 @@ export type AvatarConfig = {
   agentImageUrl: string;
   /** Overrides the handler's `webhookUrl` for this visitor. */
   webhookUrl?: string;
+  /** Early access only. See `AgentOverrides`. */
+  agentOverrides?: AgentOverrides;
 };
+
+const MAX_OVERRIDE_LENGTH = 40000;
+
+const OVERRIDE_FIELDS = [
+  ["jevPrompt", "jev_prompt"],
+  ["directorPrompt", "director_prompt"],
+  ["directorSuffix", "director_suffix"],
+] as const;
+
+function agentOverridesBody(
+  overrides: AgentOverrides | undefined,
+): { agent_overrides: Record<string, string> } | { error: string } | undefined {
+  if (!overrides) return undefined;
+  const body: Record<string, string> = {};
+  for (const [field, wire] of OVERRIDE_FIELDS) {
+    const value = overrides[field];
+    if (value == null) continue;
+    if (typeof value !== "string") return { error: `agentOverrides.${field} must be a string` };
+    if (value.length > MAX_OVERRIDE_LENGTH) {
+      return { error: `agentOverrides.${field} must be at most ${MAX_OVERRIDE_LENGTH} characters` };
+    }
+    if (value.trim()) body[wire] = value;
+  }
+  return Object.keys(body).length > 0 ? { agent_overrides: body } : undefined;
+}
 
 export type CreateRoomHandlerOptions = {
   /** Your LemonSlice API key. */
@@ -28,6 +66,11 @@ export type CreateRoomHandlerOptions = {
    * Optional auth gate run before the room is created.
    */
   authorize?: (request: Request) => Promise<Response | void> | Response | void;
+  /**
+   * LiveKit agent name sent as `livekit_agent_name_override`.
+   * Set from `LEMONSLICE_LIVEKIT_AGENT_NAME`. Omitted when empty.
+   */
+  livekitAgentNameOverride?: string;
 };
 
 /**
@@ -38,6 +81,7 @@ export type CreateRoomHandlerOptions = {
  * export const POST = createRoomHandler({
  *   apiKey: process.env.LEMONSLICE_API_KEY!,
  *   lemonSliceUrl: process.env.LEMONSLICE_API_URL!,
+ *   livekitAgentNameOverride: process.env.LEMONSLICE_LIVEKIT_AGENT_NAME,
  *   room: { prompt: "...", voiceId: "...", agentImageUrl: "https://..." },
  * });
  * ```
@@ -48,13 +92,24 @@ export function createRoomHandler({
   webhookUrl,
   room,
   authorize,
+  livekitAgentNameOverride,
 }: CreateRoomHandlerOptions) {
   return async function handleCreateRoom(request: Request): Promise<Response> {
     const browser = (await request
       .clone()
       .json()
-      .catch(() => ({}))) as { supports_vp9?: unknown };
+      .catch(() => ({}))) as {
+      supports_vp9?: unknown;
+      voice_id?: unknown;
+      model?: unknown;
+    };
     const supportsVp9 = browser?.supports_vp9 === true;
+    const requestedVoiceId =
+      typeof browser?.voice_id === "string" && browser.voice_id.trim()
+        ? browser.voice_id.trim()
+        : null;
+    const requestedModel =
+      typeof browser?.model === "string" && browser.model.trim() ? browser.model.trim() : null;
 
     if (authorize) {
       const rejection = await authorize(request);
@@ -66,8 +121,14 @@ export function createRoomHandler({
     }
 
     const config = typeof room === "function" ? await room(request) : room;
-    const { prompt, voiceId, agentImageUrl } = config;
+    const { prompt, voiceId: suggestedVoiceId, agentImageUrl } = config;
+    const voiceId = requestedVoiceId ?? suggestedVoiceId;
     const sessionWebhookUrl = config.webhookUrl ?? webhookUrl;
+    const agentNameOverride = livekitAgentNameOverride?.trim();
+    const overrides = agentOverridesBody(config.agentOverrides);
+    if (overrides && "error" in overrides) {
+      return Response.json({ error: overrides.error }, { status: 400 });
+    }
 
     let upstream: Response;
     try {
@@ -80,7 +141,10 @@ export function createRoomHandler({
           voice_id: voiceId,
           agent_image_url: agentImageUrl,
           supports_vp9: supportsVp9,
+          ...(requestedModel ? { model: requestedModel } : {}),
           ...(sessionWebhookUrl ? { webhook_url: sessionWebhookUrl } : {}),
+          ...(agentNameOverride ? { livekit_agent_name_override: agentNameOverride } : {}),
+          ...(overrides ? { agent_overrides: overrides.agent_overrides } : {}),
         }),
       });
     } catch (error) {

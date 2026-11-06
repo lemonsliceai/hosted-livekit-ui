@@ -3,7 +3,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createRoom, type RoomConnection, type RoomRequest } from "./room";
+import {
+  createRoom,
+  type RoomConnection,
+  type RoomRequest,
+  type StartCallOptions,
+} from "./room";
 
 export type CallStatus = "idle" | "connecting" | "live" | "ended" | "error";
 
@@ -14,7 +19,7 @@ export type CallState = {
   connection: RoomConnection | null;
   /** LemonSlice session ID for the active call, or null before one starts. */
   sessionId: string | null;
-  start: () => void;
+  start: (options?: StartCallOptions) => void;
   end: () => void;
   /** Called once the avatar's video track arrives. */
   markLive: () => void;
@@ -34,7 +39,7 @@ export function useLemonSliceCall({ startCallUrl }: RoomRequest): CallState {
   const abortRef = useRef<AbortController | null>(null);
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  const start = useCallback(() => {
+  const start = useCallback((options: StartCallOptions = {}) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -42,7 +47,7 @@ export function useLemonSliceCall({ startCallUrl }: RoomRequest): CallState {
     setStatus("connecting");
     setErrorMessage(null);
 
-    createRoom({ startCallUrl }, controller.signal)
+    createRoom({ startCallUrl, ...options }, controller.signal)
       .then((next) => {
         if (controller.signal.aborted) return;
         setConnection(next);
