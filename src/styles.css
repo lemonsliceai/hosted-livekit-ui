@@ -1,20 +1,145 @@
 /* Import the built file:
  *   import "@lemonslice/hosted-call/styles.css";
+ *
+ * Colors follow the OS unless the component sets data-theme="light" or "dark".
  */
 
 @tailwind base;
 @tailwind utilities;
 
 .lemonslice-call {
-  --ls-font: system-ui, -apple-system, "Segoe UI", sans-serif;
-  --ls-foreground-rgb: 10 10 10;
-  --ls-muted-rgb: 245 245 245;
-  --ls-muted-foreground-rgb: 115 115 115;
-  --ls-primary-rgb: 23 23 23;
-  --ls-primary-foreground-rgb: 250 250 250;
-  --ls-border-rgb: 229 229 229;
-  --ls-destructive-rgb: 239 68 68;
-  --ls-destructive-foreground-rgb: 255 255 255;
+  --ls-font: var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ls-canvas: #f4f4f5;
+  --ls-fg: #0a0a0a;
+  --ls-focus: #0a0a0a;
+  --ls-video-border: rgba(0, 0, 0, 0.1);
+  --ls-video-fallback: #e7e5e4;
+  --ls-start-bg: #0a0a0a;
+  --ls-start-bg-hover: #262626;
+  --ls-start-fg: #ffffff;
+  --ls-start-border: rgba(0, 0, 0, 0.12);
+  --ls-glass: rgba(0, 0, 0, 0.06);
+  --ls-glass-hover: rgba(0, 0, 0, 0.1);
+  --ls-glass-border: rgba(0, 0, 0, 0.12);
+  --ls-toggle-on: #0a0a0a;
+  --ls-toggle-on-hover: #262626;
+  --ls-toggle-on-fg: #ffffff;
+  --ls-mute-slash: #dc2626;
+  --ls-icon: #0a0a0a;
+  --ls-hangup: rgba(255, 0, 0, 0.8);
+  --ls-hangup-hover: rgba(255, 0, 0, 0.92);
+  --ls-transcript-bg: #ffffff;
+  --ls-transcript-border: rgba(0, 0, 0, 0.08);
+  --ls-incoming-bg: rgba(0, 0, 0, 0.06);
+  --ls-incoming-fg: #0a0a0a;
+  --ls-outgoing-bg: #0a0a0a;
+  --ls-outgoing-fg: #ffffff;
+  --ls-composer-bg: rgba(0, 0, 0, 0.06);
+  --ls-composer-fg: #0a0a0a;
+  --ls-placeholder: rgba(0, 0, 0, 0.45);
+  --ls-send-bg: #0a0a0a;
+  --ls-send-fg: #ffffff;
+  --ls-handle: rgba(0, 0, 0, 0.28);
+  --ls-error: #b91c1c;
+  --ls-input-bg: #ffffff;
+  --ls-input-border: #e5e5e5;
+  --ls-menu-bg: #ffffff;
+  --ls-menu-border: rgba(0, 0, 0, 0.1);
+  --ls-menu-hover: rgba(0, 0, 0, 0.05);
+  --ls-menu-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  background: var(--ls-canvas);
+  color: var(--ls-fg);
+  font-family: var(--ls-font);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  .lemonslice-call:not([data-theme="light"]) {
+    --ls-canvas: #0a0a0a;
+    --ls-fg: #ffffff;
+    --ls-focus: #ffffff;
+    --ls-video-border: rgba(255, 255, 255, 0.1);
+    --ls-video-fallback: #171717;
+    --ls-start-bg: #ffffff;
+    --ls-start-bg-hover: #f4f4f5;
+    --ls-start-fg: #000000;
+    --ls-start-border: rgba(255, 255, 255, 0.15);
+    --ls-glass: rgba(255, 255, 255, 0.1);
+    --ls-glass-hover: rgba(255, 255, 255, 0.16);
+    --ls-glass-border: rgba(255, 255, 255, 0.15);
+    --ls-toggle-on: #ffffff;
+    --ls-toggle-on-hover: #f4f4f5;
+    --ls-toggle-on-fg: #0a0a0a;
+    --ls-mute-slash: #ff453a;
+    --ls-icon: #ffffff;
+    --ls-transcript-bg: #0a0a0a;
+    --ls-transcript-border: rgba(255, 255, 255, 0.1);
+    --ls-incoming-bg: rgba(255, 255, 255, 0.1);
+    --ls-incoming-fg: #ffffff;
+    --ls-outgoing-bg: #ffffff;
+    --ls-outgoing-fg: #0a0a0a;
+    --ls-composer-bg: rgba(255, 255, 255, 0.2);
+    --ls-composer-fg: #ffffff;
+    --ls-placeholder: rgba(255, 255, 255, 0.5);
+    --ls-send-bg: #ffffff;
+    --ls-send-fg: #000000;
+    --ls-handle: rgba(255, 255, 255, 0.5);
+    --ls-error: #fca5a5;
+    --ls-input-bg: rgba(255, 255, 255, 0.05);
+    --ls-input-border: rgba(255, 255, 255, 0.15);
+    --ls-menu-bg: #171717;
+    --ls-menu-border: rgba(255, 255, 255, 0.1);
+    --ls-menu-hover: rgba(255, 255, 255, 0.08);
+    --ls-menu-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+    color-scheme: dark;
+  }
+}
+
+.lemonslice-call[data-theme="dark"] {
+  --ls-canvas: #0a0a0a;
+  --ls-fg: #ffffff;
+  --ls-focus: #ffffff;
+  --ls-video-border: rgba(255, 255, 255, 0.1);
+  --ls-video-fallback: #171717;
+  --ls-start-bg: #ffffff;
+  --ls-start-bg-hover: #f4f4f5;
+  --ls-start-fg: #000000;
+  --ls-start-border: rgba(255, 255, 255, 0.15);
+  --ls-glass: rgba(255, 255, 255, 0.1);
+  --ls-glass-hover: rgba(255, 255, 255, 0.16);
+  --ls-glass-border: rgba(255, 255, 255, 0.15);
+  --ls-toggle-on: #ffffff;
+  --ls-toggle-on-hover: #f4f4f5;
+  --ls-toggle-on-fg: #0a0a0a;
+  --ls-mute-slash: #ff453a;
+  --ls-icon: #ffffff;
+  --ls-transcript-bg: #0a0a0a;
+  --ls-transcript-border: rgba(255, 255, 255, 0.1);
+  --ls-incoming-bg: rgba(255, 255, 255, 0.1);
+  --ls-incoming-fg: #ffffff;
+  --ls-outgoing-bg: #ffffff;
+  --ls-outgoing-fg: #0a0a0a;
+  --ls-composer-bg: rgba(255, 255, 255, 0.2);
+  --ls-composer-fg: #ffffff;
+  --ls-placeholder: rgba(255, 255, 255, 0.5);
+  --ls-send-bg: #ffffff;
+  --ls-send-fg: #000000;
+  --ls-handle: rgba(255, 255, 255, 0.5);
+  --ls-error: #fca5a5;
+  --ls-input-bg: rgba(255, 255, 255, 0.05);
+  --ls-input-border: rgba(255, 255, 255, 0.15);
+  --ls-menu-bg: #171717;
+  --ls-menu-border: rgba(255, 255, 255, 0.1);
+  --ls-menu-hover: rgba(255, 255, 255, 0.08);
+  --ls-menu-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
 }
 
 :where(.lemonslice-call),
@@ -39,55 +164,416 @@
   -webkit-appearance: button;
 }
 
+:where(.lemonslice-call) input {
+  margin: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  outline: none;
+}
+
 :where(.lemonslice-call) :disabled {
   cursor: default;
 }
 
+:where(.lemonslice-call) img,
 :where(.lemonslice-call) svg,
 :where(.lemonslice-call) video {
   display: block;
   vertical-align: middle;
 }
 
-:where(.lemonslice-call) video {
-  max-width: 100%;
-  height: auto;
+.lemonslice-call button.ls-on,
+.lemonslice-call button.ls-on:hover {
+  background-color: var(--ls-toggle-on);
+  color: var(--ls-toggle-on-fg);
 }
 
-@keyframes ls-ring-ripple {
-  0% {
-    transform: scale(1);
-    opacity: 0.45;
+.lemonslice-call button.ls-on:hover {
+  background-color: var(--ls-toggle-on-hover);
+}
+
+.lemonslice-call .ls-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid var(--ls-video-border);
+  background: var(--ls-video-fallback);
+}
+
+.lemonslice-call .ls-card[data-edge-fade] {
+  /* Rounded rects. Each layer adds only its opacity step, so the fade stays soft for 80px. */
+  --ls-fade: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20389%20584%22%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%22387%22%20height%3D%22582%22%20rx%3D%2239.9%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0005%22%2F%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%22385%22%20height%3D%22580%22%20rx%3D%2239.7%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0014%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%22383%22%20height%3D%22578%22%20rx%3D%2239.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0023%22%2F%3E%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%22381%22%20height%3D%22576%22%20rx%3D%2239.4%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0031%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%225%22%20width%3D%22379%22%20height%3D%22574%22%20rx%3D%2239.3%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.004%22%2F%3E%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%22377%22%20height%3D%22572%22%20rx%3D%2239.1%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0049%22%2F%3E%3Crect%20x%3D%227%22%20y%3D%227%22%20width%3D%22375%22%20height%3D%22570%22%20rx%3D%2239%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0057%22%2F%3E%3Crect%20x%3D%228%22%20y%3D%228%22%20width%3D%22373%22%20height%3D%22568%22%20rx%3D%2238.8%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0065%22%2F%3E%3Crect%20x%3D%229%22%20y%3D%229%22%20width%3D%22371%22%20height%3D%22566%22%20rx%3D%2238.6%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0073%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%22369%22%20height%3D%22564%22%20rx%3D%2238.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0081%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2211%22%20width%3D%22367%22%20height%3D%22562%22%20rx%3D%2238.4%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0089%22%2F%3E%3Crect%20x%3D%2212%22%20y%3D%2212%22%20width%3D%22365%22%20height%3D%22560%22%20rx%3D%2238.2%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0097%22%2F%3E%3Crect%20x%3D%2213%22%20y%3D%2213%22%20width%3D%22363%22%20height%3D%22558%22%20rx%3D%2238%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0105%22%2F%3E%3Crect%20x%3D%2214%22%20y%3D%2214%22%20width%3D%22361%22%20height%3D%22556%22%20rx%3D%2237.9%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0113%22%2F%3E%3Crect%20x%3D%2215%22%20y%3D%2215%22%20width%3D%22359%22%20height%3D%22554%22%20rx%3D%2237.8%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0121%22%2F%3E%3Crect%20x%3D%2216%22%20y%3D%2216%22%20width%3D%22357%22%20height%3D%22552%22%20rx%3D%2237.6%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0129%22%2F%3E%3Crect%20x%3D%2217%22%20y%3D%2217%22%20width%3D%22355%22%20height%3D%22550%22%20rx%3D%2237.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0137%22%2F%3E%3Crect%20x%3D%2218%22%20y%3D%2218%22%20width%3D%22353%22%20height%3D%22548%22%20rx%3D%2237.3%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0145%22%2F%3E%3Crect%20x%3D%2219%22%20y%3D%2219%22%20width%3D%22351%22%20height%3D%22546%22%20rx%3D%2237.1%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0153%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22349%22%20height%3D%22544%22%20rx%3D%2237%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0161%22%2F%3E%3Crect%20x%3D%2221%22%20y%3D%2221%22%20width%3D%22347%22%20height%3D%22542%22%20rx%3D%2236.9%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0169%22%2F%3E%3Crect%20x%3D%2222%22%20y%3D%2222%22%20width%3D%22345%22%20height%3D%22540%22%20rx%3D%2236.7%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0178%22%2F%3E%3Crect%20x%3D%2223%22%20y%3D%2223%22%20width%3D%22343%22%20height%3D%22538%22%20rx%3D%2236.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0186%22%2F%3E%3Crect%20x%3D%2224%22%20y%3D%2224%22%20width%3D%22341%22%20height%3D%22536%22%20rx%3D%2236.4%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0195%22%2F%3E%3Crect%20x%3D%2225%22%20y%3D%2225%22%20width%3D%22339%22%20height%3D%22534%22%20rx%3D%2236.3%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0203%22%2F%3E%3Crect%20x%3D%2226%22%20y%3D%2226%22%20width%3D%22337%22%20height%3D%22532%22%20rx%3D%2236.1%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0212%22%2F%3E%3Crect%20x%3D%2227%22%20y%3D%2227%22%20width%3D%22335%22%20height%3D%22530%22%20rx%3D%2236%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0221%22%2F%3E%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%22333%22%20height%3D%22528%22%20rx%3D%2235.8%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.023%22%2F%3E%3Crect%20x%3D%2229%22%20y%3D%2229%22%20width%3D%22331%22%20height%3D%22526%22%20rx%3D%2235.6%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0239%22%2F%3E%3Crect%20x%3D%2230%22%20y%3D%2230%22%20width%3D%22329%22%20height%3D%22524%22%20rx%3D%2235.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0249%22%2F%3E%3Crect%20x%3D%2231%22%20y%3D%2231%22%20width%3D%22327%22%20height%3D%22522%22%20rx%3D%2235.4%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0259%22%2F%3E%3Crect%20x%3D%2232%22%20y%3D%2232%22%20width%3D%22325%22%20height%3D%22520%22%20rx%3D%2235.2%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0269%22%2F%3E%3Crect%20x%3D%2233%22%20y%3D%2233%22%20width%3D%22323%22%20height%3D%22518%22%20rx%3D%2235%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0279%22%2F%3E%3Crect%20x%3D%2234%22%20y%3D%2234%22%20width%3D%22321%22%20height%3D%22516%22%20rx%3D%2234.9%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.029%22%2F%3E%3Crect%20x%3D%2235%22%20y%3D%2235%22%20width%3D%22319%22%20height%3D%22514%22%20rx%3D%2234.8%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0301%22%2F%3E%3Crect%20x%3D%2236%22%20y%3D%2236%22%20width%3D%22317%22%20height%3D%22512%22%20rx%3D%2234.6%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0312%22%2F%3E%3Crect%20x%3D%2237%22%20y%3D%2237%22%20width%3D%22315%22%20height%3D%22510%22%20rx%3D%2234.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0324%22%2F%3E%3Crect%20x%3D%2238%22%20y%3D%2238%22%20width%3D%22313%22%20height%3D%22508%22%20rx%3D%2234.3%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0336%22%2F%3E%3Crect%20x%3D%2239%22%20y%3D%2239%22%20width%3D%22311%22%20height%3D%22506%22%20rx%3D%2234.1%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0348%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%2240%22%20width%3D%22309%22%20height%3D%22504%22%20rx%3D%2234%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0361%22%2F%3E%3Crect%20x%3D%2241%22%20y%3D%2241%22%20width%3D%22307%22%20height%3D%22502%22%20rx%3D%2233.9%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0375%22%2F%3E%3Crect%20x%3D%2242%22%20y%3D%2242%22%20width%3D%22305%22%20height%3D%22500%22%20rx%3D%2233.7%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0389%22%2F%3E%3Crect%20x%3D%2243%22%20y%3D%2243%22%20width%3D%22303%22%20height%3D%22498%22%20rx%3D%2233.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0404%22%2F%3E%3Crect%20x%3D%2244%22%20y%3D%2244%22%20width%3D%22301%22%20height%3D%22496%22%20rx%3D%2233.4%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0419%22%2F%3E%3Crect%20x%3D%2245%22%20y%3D%2245%22%20width%3D%22299%22%20height%3D%22494%22%20rx%3D%2233.3%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0435%22%2F%3E%3Crect%20x%3D%2246%22%20y%3D%2246%22%20width%3D%22297%22%20height%3D%22492%22%20rx%3D%2233.1%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0452%22%2F%3E%3Crect%20x%3D%2247%22%20y%3D%2247%22%20width%3D%22295%22%20height%3D%22490%22%20rx%3D%2233%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.047%22%2F%3E%3Crect%20x%3D%2248%22%20y%3D%2248%22%20width%3D%22293%22%20height%3D%22488%22%20rx%3D%2232.8%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0489%22%2F%3E%3Crect%20x%3D%2249%22%20y%3D%2249%22%20width%3D%22291%22%20height%3D%22486%22%20rx%3D%2232.6%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0509%22%2F%3E%3Crect%20x%3D%2250%22%20y%3D%2250%22%20width%3D%22289%22%20height%3D%22484%22%20rx%3D%2232.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.053%22%2F%3E%3Crect%20x%3D%2251%22%20y%3D%2251%22%20width%3D%22287%22%20height%3D%22482%22%20rx%3D%2232.4%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0552%22%2F%3E%3Crect%20x%3D%2252%22%20y%3D%2252%22%20width%3D%22285%22%20height%3D%22480%22%20rx%3D%2232.2%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0575%22%2F%3E%3Crect%20x%3D%2253%22%20y%3D%2253%22%20width%3D%22283%22%20height%3D%22478%22%20rx%3D%2232%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.06%22%2F%3E%3Crect%20x%3D%2254%22%20y%3D%2254%22%20width%3D%22281%22%20height%3D%22476%22%20rx%3D%2231.9%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0627%22%2F%3E%3Crect%20x%3D%2255%22%20y%3D%2255%22%20width%3D%22279%22%20height%3D%22474%22%20rx%3D%2231.8%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0656%22%2F%3E%3Crect%20x%3D%2256%22%20y%3D%2256%22%20width%3D%22277%22%20height%3D%22472%22%20rx%3D%2231.6%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0687%22%2F%3E%3Crect%20x%3D%2257%22%20y%3D%2257%22%20width%3D%22275%22%20height%3D%22470%22%20rx%3D%2231.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.072%22%2F%3E%3Crect%20x%3D%2258%22%20y%3D%2258%22%20width%3D%22273%22%20height%3D%22468%22%20rx%3D%2231.3%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0756%22%2F%3E%3Crect%20x%3D%2259%22%20y%3D%2259%22%20width%3D%22271%22%20height%3D%22466%22%20rx%3D%2231.1%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0795%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%2260%22%20width%3D%22269%22%20height%3D%22464%22%20rx%3D%2231%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0838%22%2F%3E%3Crect%20x%3D%2261%22%20y%3D%2261%22%20width%3D%22267%22%20height%3D%22462%22%20rx%3D%2230.9%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0885%22%2F%3E%3Crect%20x%3D%2262%22%20y%3D%2262%22%20width%3D%22265%22%20height%3D%22460%22%20rx%3D%2230.7%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0936%22%2F%3E%3Crect%20x%3D%2263%22%20y%3D%2263%22%20width%3D%22263%22%20height%3D%22458%22%20rx%3D%2230.6%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.0993%22%2F%3E%3Crect%20x%3D%2264%22%20y%3D%2264%22%20width%3D%22261%22%20height%3D%22456%22%20rx%3D%2230.4%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.1056%22%2F%3E%3Crect%20x%3D%2265%22%20y%3D%2265%22%20width%3D%22259%22%20height%3D%22454%22%20rx%3D%2230.3%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.1126%22%2F%3E%3Crect%20x%3D%2266%22%20y%3D%2266%22%20width%3D%22257%22%20height%3D%22452%22%20rx%3D%2230.1%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.1206%22%2F%3E%3Crect%20x%3D%2267%22%20y%3D%2267%22%20width%3D%22255%22%20height%3D%22450%22%20rx%3D%2230%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.1296%22%2F%3E%3Crect%20x%3D%2268%22%20y%3D%2268%22%20width%3D%22253%22%20height%3D%22448%22%20rx%3D%2229.8%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.14%22%2F%3E%3Crect%20x%3D%2269%22%20y%3D%2269%22%20width%3D%22251%22%20height%3D%22446%22%20rx%3D%2229.6%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.1519%22%2F%3E%3Crect%20x%3D%2270%22%20y%3D%2270%22%20width%3D%22249%22%20height%3D%22444%22%20rx%3D%2229.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.166%22%2F%3E%3Crect%20x%3D%2271%22%20y%3D%2271%22%20width%3D%22247%22%20height%3D%22442%22%20rx%3D%2229.4%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.1826%22%2F%3E%3Crect%20x%3D%2272%22%20y%3D%2272%22%20width%3D%22245%22%20height%3D%22440%22%20rx%3D%2229.2%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.2028%22%2F%3E%3Crect%20x%3D%2273%22%20y%3D%2273%22%20width%3D%22243%22%20height%3D%22438%22%20rx%3D%2229.1%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.2275%22%2F%3E%3Crect%20x%3D%2274%22%20y%3D%2274%22%20width%3D%22241%22%20height%3D%22436%22%20rx%3D%2228.9%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.2588%22%2F%3E%3Crect%20x%3D%2275%22%20y%3D%2275%22%20width%3D%22239%22%20height%3D%22434%22%20rx%3D%2228.8%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.2995%22%2F%3E%3Crect%20x%3D%2276%22%20y%3D%2276%22%20width%3D%22237%22%20height%3D%22432%22%20rx%3D%2228.6%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.3544%22%2F%3E%3Crect%20x%3D%2277%22%20y%3D%2277%22%20width%3D%22235%22%20height%3D%22430%22%20rx%3D%2228.5%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.4327%22%2F%3E%3Crect%20x%3D%2278%22%20y%3D%2278%22%20width%3D%22233%22%20height%3D%22428%22%20rx%3D%2228.3%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.5518%22%2F%3E%3Crect%20x%3D%2279%22%20y%3D%2279%22%20width%3D%22231%22%20height%3D%22426%22%20rx%3D%2228.1%22%20fill%3D%22%23fff%22%20fill-opacity%3D%220.7479%22%2F%3E%3Crect%20x%3D%2280%22%20y%3D%2280%22%20width%3D%22229%22%20height%3D%22424%22%20rx%3D%2228%22%20fill%3D%22%23fff%22%20fill-opacity%3D%221%22%2F%3E%3C%2Fsvg%3E");
+  overflow: hidden;
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+}
+
+.lemonslice-call .ls-card[data-edge-fade] .ls-portrait {
+  z-index: 0;
+  -webkit-mask-image: var(--ls-fade);
+  mask-image: var(--ls-fade);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.lemonslice-call .ls-portrait,
+.lemonslice-call .ls-rig {
+  position: absolute;
+  inset: 0;
+}
+
+.lemonslice-call .ls-glint {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.lemonslice-call .ls-fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.lemonslice-call .ls-glow {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 830px;
+  width: 688px;
+  max-width: none;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  opacity: 0.7;
+  filter: blur(100px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .lemonslice-call:not([data-theme="light"]) .ls-glow {
+    display: block;
   }
-  100% {
-    transform: scale(1.3);
+}
+
+.lemonslice-call[data-theme="dark"] .ls-glow {
+  display: block;
+}
+
+.lemonslice-call .ls-idle {
+  pointer-events: none;
+  z-index: 2;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  margin: 0;
+  width: fit-content;
+  border-radius: 24px;
+  background: rgb(220 38 38 / 0.5);
+  padding: 8px 16px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(24px);
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.lemonslice-call .ls-calling {
+  pointer-events: none;
+  z-index: 2;
+  position: absolute;
+  bottom: 35px;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, 50%);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.15),
+    0 0 16px rgba(0, 0, 0, 0.15);
+}
+
+.lemonslice-call .ls-mic-off {
+  color: var(--ls-mute-slash);
+}
+
+.lemonslice-call .ls-speech {
+  pointer-events: none;
+  position: absolute;
+  right: 8px;
+  bottom: 12px;
+  left: 8px;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.lemonslice-call .ls-speech p {
+  margin: 0;
+  max-width: 90%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #ffffff;
+  backdrop-filter: blur(24px);
+  animation: ls-fade-in-up 0.2s ease-out forwards;
+}
+
+.lemonslice-call .ls-speech[data-exiting] p {
+  animation: ls-fade-out-up 0.2s ease-out forwards;
+}
+
+@keyframes ls-fade-in-up {
+  from {
     opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@keyframes ls-ring-pulse {
-  0%,
-  100% {
+@keyframes ls-fade-out-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.lemonslice-call .ls-error {
+  margin: 0;
+  max-width: 280px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ls-error);
+}
+
+.lemonslice-call .ls-select-trigger {
+  display: flex;
+  width: 100%;
+  height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--ls-input-border);
+  border-radius: 9999px;
+  padding: 8px 16px;
+  background: var(--ls-input-bg);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.lemonslice-call .ls-select-trigger:hover,
+.lemonslice-call .ls-select-trigger[data-open] {
+  background: var(--ls-menu-hover);
+}
+
+.lemonslice-call .ls-select-trigger:focus-visible,
+.lemonslice-call .ls-precall-start:focus-visible {
+  outline: 2px solid var(--ls-focus);
+  outline-offset: 2px;
+}
+
+.lemonslice-call .ls-select-menu {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 10;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 280px;
+  border: 1px solid var(--ls-menu-border);
+  border-radius: 14px;
+  padding: 4px;
+  background: var(--ls-menu-bg);
+  box-shadow: var(--ls-menu-shadow);
+  outline: none;
+  animation: ls-menu-in 120ms ease-out;
+}
+
+.lemonslice-call .ls-select-menu[data-side="bottom"] {
+  top: calc(100% + 6px);
+  transform-origin: top center;
+}
+
+.lemonslice-call .ls-select-menu[data-side="top"] {
+  bottom: calc(100% + 6px);
+  transform-origin: bottom center;
+}
+
+.lemonslice-call .ls-select-menu-wide {
+  right: auto;
+  width: 160%;
+}
+
+.lemonslice-call .ls-select-menu-filters {
+  overflow: hidden;
+  max-height: none;
+}
+
+.lemonslice-call .ls-select-filters {
+  display: flex;
+  gap: 2px;
+  margin: 4px 4px 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--ls-menu-hover);
+}
+
+.lemonslice-call .ls-select-filters button {
+  flex: 1;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ls-fg);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.lemonslice-call .ls-select-filters button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--ls-fg) 16%, transparent);
+  color: var(--ls-fg);
+  opacity: 1;
+}
+
+.lemonslice-call .ls-select-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 240px;
+}
+
+.lemonslice-call .ls-select-option {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 8px 10px 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.lemonslice-call .ls-select-option[data-active] {
+  background: var(--ls-menu-hover);
+}
+
+.lemonslice-call .ls-voice-preview {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--ls-fg);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.lemonslice-call .ls-voice-preview-spacer {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.lemonslice-call .ls-voice-preview:hover,
+.lemonslice-call .ls-voice-preview[data-playing] {
+  background: color-mix(in srgb, var(--ls-fg) 12%, transparent);
+  opacity: 1;
+}
+
+.lemonslice-call .ls-voice-preview:focus-visible {
+  outline: 2px solid var(--ls-focus);
+  outline-offset: 2px;
+}
+
+@keyframes ls-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
     transform: scale(1);
   }
-  50% {
-    transform: scale(1.1);
-  }
 }
 
-@layer utilities {
-  .animate-ring-ripple {
-    animation: ls-ring-ripple 1.2s cubic-bezier(0.22, 1, 0.36, 1) infinite backwards;
-  }
+.lemonslice-call .ls-precall-start {
+  position: absolute;
+  z-index: 3;
+  bottom: 16px;
+  left: 50%;
+  display: inline-flex;
+  transform: translateX(-50%);
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  padding: 12px 20px;
+  background: rgba(0, 211, 49, 0.9);
+  color: #fafafa;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  transition: background-color 150ms ease;
+}
 
-  .animate-ring-pulse {
-    animation: ls-ring-pulse 1.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-  }
+.lemonslice-call .ls-precall-start:hover {
+  background: #00d331;
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    .animate-ring-ripple,
-    .animate-ring-pulse {
-      animation: none;
-    }
-  }
+.lemonslice-call .ls-fade-top {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40px);
+  mask-image: linear-gradient(to bottom, transparent, #000 40px);
 }

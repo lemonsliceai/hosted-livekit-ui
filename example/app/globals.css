@@ -1,16 +1,71 @@
+html,
 body {
+  height: 100%;
   margin: 0;
-  background: #fff;
+  background: #f4f4f5;
   color: #0a0a0a;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background: #0a0a0a;
+    color: #ffffff;
+  }
+}
+
 .page {
+  position: relative;
   display: flex;
-  min-height: 100vh;
-  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+}
+
+.close {
+  position: absolute;
+  z-index: 2;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.launch {
+  margin: auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font: 600 16px/1 var(--font-inter), Inter, system-ui, sans-serif;
+  color: #ffffff;
+  background: #0a0a0a;
+  cursor: pointer;
+}
+
+.launch:hover {
+  background: #262626;
+}
+
+@media (prefers-color-scheme: dark) {
+  .launch {
+    color: #0a0a0a;
+    background: #ffffff;
+  }
+
+  .launch:hover {
+    background: #e5e5e5;
+  }
 }

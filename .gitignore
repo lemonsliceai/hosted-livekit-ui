@@ -12,3 +12,6 @@ npm-debug.log*
 # Using pnpm; other lockfiles would shadow pnpm-lock.yaml
 package-lock.json
 yarn.lock
+
+# Generated voice preview clips (uploaded to Blob)
+scripts/voice-previews/

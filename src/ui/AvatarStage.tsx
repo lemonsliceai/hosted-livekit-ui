@@ -1,54 +1,154 @@
 "use client";
 
-import { VideoTrack } from "@livekit/components-react";
-import type { TrackReference } from "@livekit/components-react";
+import { VideoTrack, type TrackReference } from "@livekit/components-react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useStageEffects } from "./useStageEffects";
 
-const RING_BASE =
-  "pointer-events-none absolute inset-0 rounded-full border-2 origin-center animate-ring-ripple";
+/** Keeps the float from revealing the edge of the picture. */
+const DRIFT_OVERSCAN: CSSProperties = { transform: "scale(1.03)", transformOrigin: "center" };
 
 export type AvatarStageProps = {
-  compact: boolean;
-  ringing?: boolean;
+  agentImageUrl?: string;
   avatarTrack?: TrackReference | null;
-  placeholderText?: string;
+  calling?: boolean;
+  /** Visitor speech, shown on the card while the transcript is closed. */
+  caption?: string | null;
+  /** Slow float of the portrait. */
+  drift?: boolean;
+  /** Sparkles in front of the portrait. */
+  glint?: boolean;
+  /** Dissolves the frame into the backdrop. */
+  edgeFade?: boolean;
+  /** Control drawn on top of the portrait, such as the pre-call start button. */
+  overlay?: ReactNode;
+  /** Seconds left before the call ends. Hidden when null. */
+  idleSeconds?: number | null;
 };
 
 export function AvatarStage({
-  compact,
-  ringing = false,
+  agentImageUrl,
   avatarTrack,
-  placeholderText,
+  calling = false,
+  caption = null,
+  drift = false,
+  glint = false,
+  edgeFade = false,
+  overlay = null,
+  idleSeconds = null,
 }: AvatarStageProps) {
-  const frame = (
-    <div
-      className={[
-        "relative flex items-center justify-center overflow-hidden bg-[rgb(var(--ls-muted-rgb))]",
-        compact ? "h-[250px] w-[250px] rounded-full" : "aspect-[2/3] w-[320px] rounded-3xl",
-        ringing ? "z-[1] origin-center will-change-transform animate-ring-pulse" : "",
-      ].join(" ")}
-    >
-      {avatarTrack ? (
-        <VideoTrack trackRef={avatarTrack} className="absolute inset-0 h-full w-full object-cover" />
-      ) : (
-        placeholderText && (
-          <span className="text-sm text-[rgb(var(--ls-muted-foreground-rgb))]">
-            {placeholderText}
-          </span>
-        )
-      )}
-    </div>
-  );
-
-  if (!ringing) return frame;
+  const panelRef = useRef<HTMLDivElement>(null);
+  const rigRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useStageEffects({ drift, glint, panelRef, rigRef, canvasRef });
+  const overscan = drift ? DRIFT_OVERSCAN : undefined;
 
   return (
-    <div className="relative flex h-[250px] w-[250px] items-center justify-center">
-      <span aria-hidden className={`${RING_BASE} border-[rgb(var(--ls-foreground-rgb)/0.25)]`} />
-      <span
-        aria-hidden
-        className={`${RING_BASE} border-[rgb(var(--ls-foreground-rgb)/0.15)] [animation-delay:600ms]`}
-      />
-      {frame}
+    <div className="ls-card" data-edge-fade={edgeFade ? "" : undefined}>
+      <div ref={panelRef} className="ls-portrait">
+        <div ref={rigRef} className="ls-rig">
+          <PortraitMedia agentImageUrl={agentImageUrl} avatarTrack={avatarTrack} style={overscan} />
+          {glint && <canvas ref={canvasRef} className="ls-glint" />}
+        </div>
+      </div>
+      {calling && <p className="ls-calling">Calling...</p>}
+      {idleSeconds != null && idleSeconds > 0 && (
+        <p className="ls-idle" role="status" aria-live="polite">
+          Still there? Ending in {idleSeconds}s
+        </p>
+      )}
+      <SpeechTag text={caption} />
+      {overlay}
     </div>
+  );
+}
+
+function PortraitMedia({
+  agentImageUrl,
+  avatarTrack,
+  style,
+}: {
+  agentImageUrl?: string;
+  avatarTrack?: TrackReference | null;
+  style?: CSSProperties;
+}) {
+  return (
+    <>
+      <AgentImage src={agentImageUrl} className="ls-fill" style={style} />
+      {avatarTrack && <VideoTrack trackRef={avatarTrack} className="ls-fill" style={style} />}
+    </>
+  );
+}
+
+const CAPTION_HIDE_MS = 3000;
+
+function SpeechTag({ text }: { text: string | null }) {
+  const [shown, setShown] = useState<string | null>(null);
+  const [exiting, setExiting] = useState(false);
+  const phase = useRef<"hidden" | "visible" | "exiting">("hidden");
+
+  useEffect(() => {
+    if (!text) {
+      if (phase.current === "visible") {
+        phase.current = "exiting";
+        setExiting(true);
+      }
+      return;
+    }
+    setShown(text);
+    if (phase.current !== "visible") {
+      phase.current = "visible";
+      setExiting(false);
+    }
+    const hide = window.setTimeout(() => {
+      phase.current = "exiting";
+      setExiting(true);
+    }, CAPTION_HIDE_MS);
+    return () => window.clearTimeout(hide);
+  }, [text]);
+
+  if (!shown) return null;
+
+  return (
+    <div className="ls-speech" data-exiting={exiting ? "" : undefined}>
+      <p
+        onAnimationEnd={() => {
+          if (phase.current !== "exiting") return;
+          phase.current = "hidden";
+          setShown(null);
+          setExiting(false);
+        }}
+      >
+        {shown}
+      </p>
+    </div>
+  );
+}
+
+export function AgentImage({
+  src,
+  className,
+  style,
+}: {
+  src?: string;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    setHidden(false);
+  }, [src]);
+
+  if (!src || hidden) return null;
+
+  return (
+    <img
+      src={src}
+      alt=""
+      draggable={false}
+      className={className}
+      style={style}
+      onError={() => setHidden(true)}
+    />
   );
 }

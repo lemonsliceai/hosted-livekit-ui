@@ -1,49 +1,122 @@
 "use client";
 
-import { useEffect } from "react";
 import { RoomAudioRenderer, useTrackToggle } from "@livekit/components-react";
 import { Track } from "livekit-client";
+import { useEffect, useRef, useState } from "react";
 import { useAvatarVideo } from "../core/useAvatarVideo";
-import { AvatarStage } from "./AvatarStage";
-import { pillButton } from "./buttons";
 import { CallControlsBar } from "./CallControlsBar";
+import { CallLayout } from "./CallLayout";
+import { Composer } from "./Composer";
+import { TranscriptThread } from "./TranscriptThread";
+import { AvatarStage } from "./AvatarStage";
+import { useIdleCountdown } from "./useIdleCountdown";
+import { useTranscript, type TranscriptMessage } from "./useTranscript";
 
 export type CallPanelProps = {
+  agentImageUrl?: string;
+  narrow: boolean;
+  transcriptOpen: boolean;
+  onToggleTranscript: () => void;
   onAvatarReady: () => void;
   onEnd: () => void;
+  drift?: boolean;
+  glint?: boolean;
+  edgeFade?: boolean;
 };
 
-export function CallPanel({ onAvatarReady, onEnd }: CallPanelProps) {
+export function CallPanel({
+  agentImageUrl,
+  narrow,
+  transcriptOpen,
+  onToggleTranscript,
+  onAvatarReady,
+  onEnd,
+  drift = false,
+  glint = false,
+  edgeFade = false,
+}: CallPanelProps) {
   const avatarTrack = useAvatarVideo();
   const { toggle: toggleMic, enabled: micEnabled, pending: micPending } = useTrackToggle({
     source: Track.Source.Microphone,
   });
+  const transcript = useTranscript();
+  const idleSeconds = useIdleCountdown(onEnd);
+  const caption = useSpokenCaption(transcript.messages, !transcriptOpen);
 
   useEffect(() => {
     if (avatarTrack) onAvatarReady();
   }, [avatarTrack, onAvatarReady]);
 
-  const connecting = !avatarTrack;
+  const composer = (
+    <Composer
+      className={narrow ? "flex-1" : "w-full"}
+      onSend={transcript.send}
+    />
+  );
 
   return (
     <>
-      <AvatarStage compact={connecting} ringing={connecting} avatarTrack={avatarTrack} />
-
-      {connecting ? (
-        <button type="button" className={pillButton} disabled>
-          Calling…
-        </button>
-      ) : (
-        <CallControlsBar
-          micEnabled={micEnabled}
-          micPending={micPending}
-          onToggleMic={() => void toggleMic()}
-          onHangUp={onEnd}
-        />
-      )}
-
-      {/* Plays the avatar's audio. */}
+      <CallLayout
+        agentImageUrl={agentImageUrl}
+        narrow={narrow}
+        transcriptOpen={transcriptOpen}
+        portrait={
+          <AvatarStage
+            agentImageUrl={agentImageUrl}
+            avatarTrack={avatarTrack}
+            calling={!avatarTrack}
+            caption={caption}
+            idleSeconds={idleSeconds}
+            drift={drift}
+            glint={glint}
+            edgeFade={edgeFade}
+          />
+        }
+        toolbar={
+          <CallControlsBar
+            compact={narrow && transcriptOpen}
+            micEnabled={micEnabled}
+            micDisabled={micPending}
+            muted={!micEnabled}
+            onToggleMic={() => void toggleMic()}
+            onHangUp={onEnd}
+            transcriptOpen={transcriptOpen}
+            onToggleTranscript={onToggleTranscript}
+            composer={narrow && transcriptOpen ? composer : undefined}
+          />
+        }
+        messages={
+          <TranscriptThread
+            messages={transcript.messages}
+            fade={narrow}
+            className={narrow ? "px-1 pb-4 pt-6" : "px-8 pb-6 pt-8"}
+          />
+        }
+        composer={composer}
+      />
       <RoomAudioRenderer />
     </>
   );
+}
+
+/** Latest thing the visitor said, shown on the card only while the transcript is closed. */
+function useSpokenCaption(messages: TranscriptMessage[], enabled: boolean) {
+  const spoken = [...messages].reverse().find((message) => message.role === "user" && message.kind === "transcription");
+  const text = spoken?.text ?? null;
+  const seen = useRef<string | null>(null);
+  const [caption, setCaption] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!text) return;
+    if (!enabled) {
+      seen.current = text;
+      setCaption(null);
+      return;
+    }
+    if (seen.current === text) return;
+    seen.current = text;
+    setCaption(text);
+  }, [enabled, text]);
+
+  return caption;
 }

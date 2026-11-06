@@ -13,6 +13,11 @@ export default defineConfig([
     entry: { index: "src/index.ts" },
     // The React entry is client-only; the directive has to survive bundling.
     banner: { js: '"use client";' },
+    loader: {
+      ".m4a": "dataurl",
+      ".mp3": "dataurl",
+      ".svg": "dataurl",
+    },
   },
   {
     ...shared,
