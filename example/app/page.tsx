@@ -14,7 +14,7 @@ export default function Home() {
           <LemonSliceCall
             startCallUrl="/api/lemonslice/start-call"
             agentImageUrl={AGENT_IMAGE_URL}
-            suggestedVoiceId="0984f8581bbb4e5e980a990abb865874"
+            suggestedVoiceId={VOICE_ID}
             theme="dark"
           />
           <button type="button" className="close" onClick={() => setOpen(false)} aria-label="Close">
