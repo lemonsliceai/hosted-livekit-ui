@@ -47,3 +47,22 @@ defaults run. Unknown ids get a 400 listing the known ones.
 The pre-call screen still shows the portrait and voice from `agent.ts`; the character
 takes effect once the call connects. The route logs `[lemonslice] session=<id> character=<name>`
 on every call, which is the only record of which config a session ran.
+
+## Evals (development only)
+
+Set `NEXT_PUBLIC_EVALS=1` in `.env.local` (or open <http://localhost:3001/?evals=1> for one
+visit; `?evals=0` hides it). The call then shares the page with a panel on the left that
+lists what the agent made of each user line: the Jev score, the decision, the prompt, and
+the prompt as sent to the pipeline. The agent must run with `ACTION_EVALS=1`
+(see `hosted-livekit-agent`), or nothing arrives.
+
+Per line: mark it **action** or **no action**, add a **note**, or **replay** the prompt,
+edited or not, with a duration; the agent plays it silently and reports what it actually
+sent. A note on the whole call sits at the top. The header shows the agent's session
+record: session id, model, and which prompt overrides were set.
+
+Each call gets its own log, `logs/<start stamp>-<session id>.jsonl`, written by
+`app/api/evals/log`: the session record, every verdict, and every label, note, and
+replay, in the record shape companion-demo's `harness_report.py` reads. `logs/` is
+gitignored. The code is under `evals/`; the page only passes `onRoom` and wraps the call
+in `EvalsLayout`, both behind the flag.

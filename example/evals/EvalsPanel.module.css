@@ -1,0 +1,51 @@
+.layout { display: flex; width: 100%; height: 100%; min-height: 0; }
+.call { position: relative; flex: 1 1 auto; min-width: 0; height: 100%; }
+
+.panel {
+  flex: 0 0 400px;
+  height: 100%;
+  overflow-y: auto;
+  padding: 10px 12px 16px;
+  background: #0b0b0d;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.75);
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.collapsed { flex-basis: 40px; padding: 10px 6px; overflow: hidden; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.title { color: #fff; font-weight: 600; }
+.meta { color: rgba(255, 255, 255, 0.45); overflow-wrap: anywhere; margin-bottom: 8px; }
+.empty { color: rgba(255, 255, 255, 0.4); }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.row { padding: 8px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; background: rgba(255, 255, 255, 0.03); }
+.head { display: flex; flex-wrap: wrap; gap: 6px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px; }
+.action { color: #8fd694; }
+.none { color: rgba(255, 255, 255, 0.5); }
+.busy { color: #e0b96a; }
+.error { color: #e07a7a; }
+.text { color: rgba(255, 255, 255, 0.9); white-space: pre-wrap; overflow-wrap: anywhere; }
+.field { margin-top: 4px; display: grid; grid-template-columns: 44px 1fr; gap: 6px; }
+.key { color: rgba(255, 255, 255, 0.4); }
+.value { white-space: pre-wrap; overflow-wrap: anywhere; }
+.noteText { color: #d8c48a; }
+
+.link { margin-left: 6px; padding: 0; border: 0; background: none; color: rgba(255, 255, 255, 0.5); font: inherit; text-decoration: underline; cursor: pointer; }
+.link:hover { color: #fff; }
+
+.pills { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pill { padding: 2px 8px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 999px; background: none; color: rgba(255, 255, 255, 0.55); font: inherit; cursor: pointer; }
+.pill:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.5); color: #fff; }
+.pill:disabled { opacity: 0.4; cursor: not-allowed; }
+.pillOn { border-color: rgba(255, 255, 255, 0.7); background: rgba(255, 255, 255, 0.18); color: #fff; }
+.spacer { flex: 1; }
+.status { color: rgba(255, 255, 255, 0.45); }
+.agree { color: #8fd694; }
+.disagree { color: #e07a7a; }
+
+.editor { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+.textarea { width: 100%; resize: vertical; padding: 6px; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; background: rgba(0, 0, 0, 0.4); color: rgba(255, 255, 255, 0.9); font: inherit; }
+.textarea:focus { outline: none; border-color: rgba(255, 255, 255, 0.45); }
+.select { padding: 2px 6px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; background: rgba(0, 0, 0, 0.4); color: rgba(255, 255, 255, 0.8); font: inherit; }
+.sessionNote { margin-bottom: 10px; }

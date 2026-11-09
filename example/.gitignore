@@ -13,6 +13,9 @@ npm-debug.log*
 package-lock.json
 yarn.lock
 
+# Evals panel output (see evals/)
+logs/
+
 # Local-only TypeScript (e.g. example/characters/*.local.ts). Keep the .example copies tracked.
 *.local.ts
 !*.local.example.ts

@@ -1,6 +1,7 @@
 "use client";
 
 import { LiveKitRoom } from "@livekit/components-react";
+import type { Room } from "livekit-client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLemonSliceCall } from "../core/useLemonSliceCall";
 import { AvatarStage } from "./AvatarStage";
@@ -17,6 +18,7 @@ import {
   type LemonSliceVideoModel,
   type LemonSliceVideoModelInput,
 } from "./PreCallSetup";
+import { RoomTap } from "./RoomTap";
 import { TranscriptThread } from "./TranscriptThread";
 
 const NARROW_BELOW = 880;
@@ -53,6 +55,11 @@ export type LemonSliceCallProps = {
    * Use it for ids your server resolves (a character, a scene), never for prompt text.
    */
   startCallBody?: Record<string, unknown>;
+  /**
+   * Called with the LiveKit room once the call is connected, and with null when it
+   * ends. For listening to the room's data topics from outside the component.
+   */
+  onRoom?: (room: Room | null) => void;
   /** `system` follows the visitor's OS appearance. */
   theme?: LemonSliceCallTheme;
   /** Slow float of the portrait. */
@@ -72,6 +79,7 @@ export function LemonSliceCall({
   suggestedVoiceId,
   models,
   startCallBody,
+  onRoom,
   theme = "system",
   drift = false,
   glint = false,
@@ -167,6 +175,7 @@ export function LemonSliceCall({
           onError={onRoomError}
           className="flex h-full min-h-0 w-full"
         >
+          {onRoom ? <RoomTap onRoom={onRoom} /> : null}
           <CallPanel
             agentImageUrl={agentImageUrl}
             narrow={narrow}

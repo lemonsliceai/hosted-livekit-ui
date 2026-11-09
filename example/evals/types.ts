@@ -1,0 +1,55 @@
+/** Records from the agent on `agent/evals` (ACTION_EVALS=1), and the page's own marks. */
+export type Decision = "action" | "none" | "busy" | "error";
+export type Truth = "action" | "none";
+
+export type Verdict = {
+  turn: string;
+  time: string;
+  room?: string;
+  session_id?: string;
+  text: string;
+  decision: Decision;
+  /** P(asking for an action). Absent when the line was not scored. */
+  jev?: number;
+  /** The writer's prompt. */
+  prompt?: string;
+  /** The prompt as the pipeline received it: suffix appended, capped. */
+  full_prompt?: string;
+  duration?: number;
+  event?: string;
+  error?: string;
+  /** Director state for a busy line. */
+  state?: string;
+  /** What Jev was shown. Logged, not displayed. */
+  jev_state?: string;
+  /** Page-side marks, also logged. */
+  truth?: Truth;
+  note?: string;
+  replays?: number;
+  /** The last replay request: waiting for the agent, sent, or refused because a clip was in flight. */
+  replay?: "pending" | "sent" | "busy";
+};
+
+/** The agent's one-off description of the session, for provenance at the top of each log. */
+export type Session = {
+  time: string;
+  room?: string;
+  session_id?: string;
+  model?: string;
+  character_head?: string;
+  overrides?: string[];
+};
+
+/**
+ * The slice of a LiveKit Room this folder uses, so it needs no LiveKit import.
+ * `LemonSliceCall`'s `onRoom` hands out the real room, which satisfies this.
+ */
+export type DataListener = (payload: Uint8Array, participant?: unknown, kind?: unknown, topic?: string) => void;
+export type EvalRoom = {
+  name: string;
+  on(event: "dataReceived", listener: DataListener): unknown;
+  off(event: "dataReceived", listener: DataListener): unknown;
+  localParticipant: {
+    publishData(data: Uint8Array, options?: { reliable?: boolean; topic?: string }): Promise<unknown>;
+  };
+};
