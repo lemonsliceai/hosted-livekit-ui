@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/ensure-local-characters.mjs",
     "dev": "next dev --port 3001",
+    "prebuild": "node scripts/ensure-local-characters.mjs",
     "build": "next build",
-    "start": "next start --port 3001"
+    "start": "next start --port 3001",
+    "typecheck": "node scripts/ensure-local-characters.mjs && tsc --noEmit -p ."
   },
   "dependencies": {
     "@lemonslice/hosted-call": "file:..",

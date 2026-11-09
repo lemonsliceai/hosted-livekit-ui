@@ -225,6 +225,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `onEnded` | Optional. Called when the call ends. |
 | `suggestedVoiceId` | Optional. The voice your room uses for **Suggested**; names that row when it matches a listed voice. |
 | `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description? }`. Defaults to `["standard", "premium"]`. |
+| `startCallBody` | Optional. Extra fields merged into the start-call POST body, for your route to read (for example a character id your server resolves). Never send prompt text from the browser. |
 | `theme` | `system` (default), `light`, or `dark`. |
 | `drift` | Slow float of the portrait. Off by default. |
 | `glint` | Sparkles in front of the portrait. Off by default. |

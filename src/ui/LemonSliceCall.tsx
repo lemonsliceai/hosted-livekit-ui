@@ -48,6 +48,11 @@ export type LemonSliceCallProps = {
    * One entry hides the dropdown.
    */
   models?: readonly LemonSliceVideoModelInput[];
+  /**
+   * Extra fields sent in the start-call POST body, for your route to read.
+   * Use it for ids your server resolves (a character, a scene), never for prompt text.
+   */
+  startCallBody?: Record<string, unknown>;
   /** `system` follows the visitor's OS appearance. */
   theme?: LemonSliceCallTheme;
   /** Slow float of the portrait. */
@@ -66,6 +71,7 @@ export function LemonSliceCall({
   agentImageUrl,
   suggestedVoiceId,
   models,
+  startCallBody,
   theme = "system",
   drift = false,
   glint = false,
@@ -140,6 +146,7 @@ export function LemonSliceCall({
     call.start({
       ...(voiceId ? { voiceId } : {}),
       model: VIDEO_MODEL_IDS[videoModel],
+      ...(startCallBody ? { startCallBody } : {}),
     });
   };
 

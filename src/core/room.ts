@@ -16,6 +16,12 @@ export type StartCallOptions = {
   voiceId?: string;
   /** LemonSlice avatar model for this call. */
   model?: "cwm-1-lite" | "cwm-1" | "roleplay";
+  /**
+   * Extra fields merged into the start-call POST body for your own route to read,
+   * such as a character id. Never put prompt text here; resolve ids server-side.
+   * The built-in fields win on a name clash.
+   */
+  startCallBody?: Record<string, unknown>;
 };
 
 export type RoomRequest = {
@@ -28,13 +34,14 @@ export type RoomRequest = {
  * DB queries, and sending the LemonSlice request.
  */
 export async function createRoom(
-  { startCallUrl, voiceId, model }: RoomRequest & StartCallOptions,
+  { startCallUrl, voiceId, model, startCallBody }: RoomRequest & StartCallOptions,
   signal?: AbortSignal,
 ): Promise<RoomConnection> {
   const response = await fetch(startCallUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      ...startCallBody,
       supports_vp9: supportsVP9(),
       ...(voiceId ? { voice_id: voiceId } : {}),
       ...(model ? { model } : {}),

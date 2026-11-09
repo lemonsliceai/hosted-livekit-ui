@@ -26,3 +26,24 @@ Open <http://localhost:3001> and click **Video call**. The call connects as soon
 cd .. && pnpm build
 cd example && rm -rf .next && pnpm dev
 ```
+
+## Characters
+
+A character is one file: a session config with the prompt, voice, reference image, and
+the Roleplay prompt overrides (`jevPrompt`, `directorPrompt`, `directorSuffix`). The
+route replaces its defaults with whatever the file fills in; blank fields keep them.
+
+- `characters/template.ts` is a blank one with every field explained. Copy it to
+  `characters/<name>.local.ts` and list it in `characters/characters.local.ts`.
+- `characters.local.ts` and any `*.local.ts` beside it are gitignored. `pnpm dev`
+  creates `characters.local.ts` from `characters.local.example.ts` if it is missing.
+- A file with every field filled in is a complete `AvatarConfig`, so it can be shared
+  and passed straight to `createRoomHandler({ room: ... })` in any app using the package.
+
+Pick one with `?character=<name>` on the page, e.g. <http://localhost:3001/?character=elise>.
+Without the query, `LEMONSLICE_CHARACTER` in `.env.local` applies; unset, the route's
+defaults run. Unknown ids get a 400 listing the known ones.
+
+The pre-call screen still shows the portrait and voice from `agent.ts`; the character
+takes effect once the call connects. The route logs `[lemonslice] session=<id> character=<name>`
+on every call, which is the only record of which config a session ran.

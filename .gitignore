@@ -15,3 +15,7 @@ yarn.lock
 
 # Generated voice preview clips (uploaded to Blob)
 scripts/voice-previews/
+
+# Local-only TypeScript (e.g. example/characters/*.local.ts). Keep the .example copies tracked.
+*.local.ts
+!*.local.example.ts
