@@ -101,14 +101,20 @@ export function LemonSliceCall({
       : modelOptions[0].value;
 
   const modelIds = modelOptions.map((option) => option.value);
+  const cached = variantsOn && agentImageUrl ? cachedAvatarVariants(agentImageUrl, modelIds) : undefined;
   // undefined = lookup still running. An empty object = lookup finished with nothing cached.
-  const [variants, setVariants] = useState<Record<string, string> | undefined>(() =>
-    variantsOn && agentImageUrl ? cachedAvatarVariants(agentImageUrl, modelIds) : undefined,
-  );
+  const [variants, setVariants] = useState<Record<string, string> | undefined>(cached);
+  const [variantImage, setVariantImage] = useState(agentImageUrl);
+  // Crops belong to one photo. Drop them in this render when the photo changes, before paint.
+  if (variantImage !== agentImageUrl) {
+    setVariantImage(agentImageUrl);
+    setVariants(cached);
+    setPrepareError(null);
+  }
   onEndedRef.current = onEnded;
 
   useEffect(() => {
-    if (!variantsOn || !agentImageUrl || cachedAvatarVariants(agentImageUrl, modelIds)) return;
+    if (!variantsOn || !agentImageUrl || cached) return;
     let cancelled = false;
     loadAvatarVariants(agentImageUrl, modelIds, (found) => {
       if (!cancelled) setVariants(found);
