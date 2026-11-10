@@ -346,3 +346,24 @@ After editing, rebuild and restart your dev server:
 pnpm build
 cd ../your-app && rm -rf .next && pnpm dev
 ```
+
+---
+
+## Moderation
+
+`src/ui/moderation.ts` provides hooks for real-time moderation of user and agent speech:
+
+- `onUserTranscript(transcript, sessionId)`
+- `onAgentTranscript(transcript, sessionId)`
+
+If your moderation service determines that a call needs to be terminated, call the LemonSlice [Control a session](https://lemonslice.com/docs/api-reference/control-session) endpoint from your server with the LemonSlice `session_id` and the `"stop"` action:
+
+```bash
+curl --request POST \
+  --url https://lemonslice.com/api/liveai/sessions/{session_id}/control \
+  --header 'Content-Type: application/json' \
+  --header 'X-API-Key: <api-key>' \
+  --data '{
+    "action": "stop"
+  }'
+```

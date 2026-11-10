@@ -8,7 +8,8 @@ import {
   type Room,
   type TextStreamReader,
 } from "livekit-client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { onAgentTranscript, onUserTranscript } from "./moderation";
 
 /** Text-stream topic LiveKit agents read. */
 const CHAT_TOPIC = "lk.chat";
@@ -70,16 +71,23 @@ function upsert(messages: TranscriptMessage[], next: TranscriptMessage): Transcr
  * LiveKit's `useChat` sends them: a text stream on `lk.chat`, then the legacy
  * `lk-chat-topic` packet. The bubble id is the text-stream id.
  */
-export function useTranscript() {
+export function useTranscript(sessionId: string | null) {
   const room = useRoomContext();
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
   const [messages, setMessages] = useState<TranscriptMessage[]>([]);
 
   useEffect(() => {
     let cancelled = false;
+    const processed_transcripts = new Set<string>();
 
     const commit = (message: TranscriptMessage) => {
       if (cancelled || !message.text) return;
       setMessages((current) => upsert(current, message));
+      if (!message.final || message.kind === "event" || processed_transcripts.has(message.id)) return;
+      processed_transcripts.add(message.id);
+      if (message.role === "user") onUserTranscript(message.text, sessionIdRef.current);
+      else onAgentTranscript(message.text, sessionIdRef.current);
     };
 
     const readStream = async (reader: TextStreamReader) => {

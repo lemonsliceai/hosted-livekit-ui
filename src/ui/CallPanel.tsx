@@ -22,6 +22,7 @@ export type CallPanelProps = {
   drift?: boolean;
   glint?: boolean;
   edgeFade?: boolean;
+  sessionId?: string | null;
 };
 
 export function CallPanel({
@@ -34,12 +35,13 @@ export function CallPanel({
   drift = false,
   glint = false,
   edgeFade = false,
+  sessionId = null,
 }: CallPanelProps) {
   const avatarTrack = useAvatarVideo();
   const { toggle: toggleMic, enabled: micEnabled, pending: micPending } = useTrackToggle({
     source: Track.Source.Microphone,
   });
-  const transcript = useTranscript();
+  const transcript = useTranscript(sessionId);
   const idleSeconds = useIdleCountdown(onEnd);
   const caption = useSpokenCaption(transcript.messages, !transcriptOpen);
 
