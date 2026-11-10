@@ -27,9 +27,17 @@ You are in the user's application. This package is not that application. Do not 
 
 1. If the user provided an npm package name, install that package.
 
-   When they also gave a path to a local checkout, link that checkout so the app runs that code. Build it first so `dist` exists.
+   When they also gave a path to a local checkout, still record a deployable dependency first, then link that checkout over it. `npm link` only overrides `node_modules`. It does not give CI or a deployment a package to install.
 
-   In the checkout:
+   Add the published package with the app's package manager so `package.json` and the lockfile record it:
+
+   ```bash
+   pnpm add <package-name>@latest
+   ```
+
+   Use `npm install <package-name>@latest` or `yarn add <package-name>@latest` when that is the app's package manager. If the package is not on npm, record the git dependency from step 2 instead.
+
+   Then build the checkout and link it as a local override:
 
    ```bash
    npm run build
@@ -42,7 +50,7 @@ You are in the user's application. This package is not that application. Do not 
    npm link <package-name>
    ```
 
-   Use the application's package manager when it is not npm (`pnpm link --global` in the checkout, then `pnpm link --global <package-name>` in the app).
+   Use the application's package manager when it is not npm (`pnpm link --global` in the checkout, then `pnpm link --global <package-name>` in the app). If the link command rewrites the dependency to `link:` or `file:`, put back the registry or git specifier before committing. Commit `package.json` and the lockfile with that specifier, not the link.
 
    When there is no local checkout, add the published package at its latest version with the app's package manager:
 
@@ -54,15 +62,17 @@ You are in the user's application. This package is not that application. Do not 
 
 2. Otherwise install from the git repo this code lives in.
 
+   Read the `name` field in that repo's `package.json` before you add the dependency. Use the local checkout when you have one. Otherwise read `https://github.com/<owner>/<repo>/raw/HEAD/package.json`. That `name` is the dependency key and the import path. Do not write a placeholder key.
+
    ```json
-   "@your-org/hosted-lemonslice-call": "github:<owner>/<repo>"
+   "<name>": "github:<owner>/<repo>"
    ```
 
    `<owner>/<repo>` is the customer's fork, or the repo on the LemonSlice GitHub account (`lemonsliceai/hosted-call-{customer}`). Use the repo the user names. Ask for it when they have not given one.
 
    If that install fails because the repo or npm package is private, stop and ask the user for access. Do not copy the package source into the app, and do not make the package public.
 
-After it is installed, open that package's `package.json` and read `name`. Use that exact name for every import below. `@your-org/hosted-lemonslice-call` in this document is only a placeholder.
+Use that same `name` for every import below. `@your-org/hosted-lemonslice-call` in the samples is only a stand-in. Replace it.
 
 Do not clone or copy the example application into this repository.
 
