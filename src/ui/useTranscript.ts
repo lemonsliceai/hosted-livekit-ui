@@ -76,15 +76,24 @@ export function useTranscript(sessionId: string | null) {
   const sessionIdRef = useRef(sessionId);
   sessionIdRef.current = sessionId;
   const processedTranscripts = useRef(new Set<string>());
+  const scopedSessionId = useRef<string | null>(sessionId);
   const [messages, setMessages] = useState<TranscriptMessage[]>([]);
+
+  const transcriptsFor = useCallback((activeSessionId: string | null) => {
+    if (scopedSessionId.current !== activeSessionId) {
+      processedTranscripts.current = new Set();
+      scopedSessionId.current = activeSessionId;
+    }
+    return processedTranscripts.current;
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    const processed_transcripts = processedTranscripts.current;
 
     const commit = (message: TranscriptMessage) => {
       if (cancelled || !message.text) return;
       setMessages((current) => upsert(current, message));
+      const processed_transcripts = transcriptsFor(sessionIdRef.current);
       if (!message.final || message.kind === "event" || processed_transcripts.has(message.id)) return;
       processed_transcripts.add(message.id);
       if (message.role === "user") onUserTranscript(message.text, sessionIdRef.current);
@@ -198,19 +207,21 @@ export function useTranscript(sessionId: string | null) {
       room.unregisterTextStreamHandler(TRANSCRIPTION_TOPIC);
       room.unregisterTextStreamHandler(CHAT_TOPIC);
     };
-  }, [room]);
+  }, [room, transcriptsFor]);
 
   const send = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
+      const sentSessionId = sessionIdRef.current;
       const info = await room.localParticipant.sendText(trimmed, { topic: CHAT_TOPIC });
       setMessages((current) =>
         upsert(current, { id: info.id, role: "user", text: trimmed, final: true, kind: "chat" }),
       );
-      if (!processedTranscripts.current.has(info.id)) {
-        processedTranscripts.current.add(info.id);
-        onUserTranscript(trimmed, sessionIdRef.current);
+      const processed_transcripts = transcriptsFor(sessionIdRef.current);
+      if (!processed_transcripts.has(info.id)) {
+        processed_transcripts.add(info.id);
+        onUserTranscript(trimmed, sentSessionId);
       }
       const legacy = {
         id: info.id,
@@ -227,7 +238,7 @@ export function useTranscript(sessionId: string | null) {
         console.info("[lemonslice] could not send message in legacy chat format", error);
       }
     },
-    [room],
+    [room, transcriptsFor],
   );
 
   return { messages, send };

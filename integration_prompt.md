@@ -13,23 +13,65 @@ First inspect the codebase and determine:
 - Whether the application has a backend/server component where secrets can safely be used.
 - How API routes or backend endpoints are structured.
 - Where global/root CSS imports live.
-- Which page or component is the most appropriate place to render the LemonSlice avatar.
+- Which page or component is the most appropriate place to render the LemonSlice avatar. Ask user for guidance here if they have not provided a location this component should be used.
 
 Prefer adapting the integration to the existing application rather than introducing new architectural patterns.
 
 ## 1. Install LemonSlice
 
-Add this dependency:
+Install in this order. Stop at the first one that applies.
 
-```json
-"@lemonslice/hosted-call": "github:lemonsliceai/hosted-livekit-ui#v1.0.0"
-```
+You are in the user's application. This package is not that application. Do not clone/copy the package into the app.
 
-Use the application's existing package manager to install/update dependencies.
+1. If the user provided an npm package name, install that package.
 
-Keep the package pinned to `v1.0.0`.
+   When they also gave a path to a local checkout, link that checkout so the app runs that code. Build it first so `dist` exists.
+
+   In the checkout:
+
+   ```bash
+   npm run build
+   npm link
+   ```
+
+   In the application:
+
+   ```bash
+   npm link <package-name>
+   ```
+
+   Use the application's package manager when it is not npm (`pnpm link --global` in the checkout, then `pnpm link --global <package-name>` in the app).
+
+   When there is no local checkout, add the published package at its latest version with the app's package manager:
+
+   ```bash
+   pnpm add <package-name>@latest
+   ```
+
+   Use `npm install <package-name>@latest` or `yarn add <package-name>@latest` when that is the app's package manager.
+
+2. Otherwise install from the git repo this code lives in.
+
+   ```json
+   "@your-org/hosted-lemonslice-call": "github:<owner>/<repo>"
+   ```
+
+   `<owner>/<repo>` is the customer's fork, or the repo on the LemonSlice GitHub account (`lemonsliceai/hosted-call-{customer}`). Use the repo the user names. Ask for it when they have not given one.
+
+After it is installed, open that package's `package.json` and read `name`. Use that exact name for every import below. `@your-org/hosted-lemonslice-call` in this document is only a placeholder.
 
 Do not clone or copy the example application into this repository.
+
+## 2. Configure the key — server side only
+
+Put these in the server env file the app already uses. For Next.js that is `.env.local`. Never expose them to client code, and do not commit the key.
+
+```bash
+LEMONSLICE_API_KEY=
+LEMONSLICE_API_URL=https://lemonslice.com/api/liveai/rooms
+```
+
+Ask the user for their LemonSlice API key and set `LEMONSLICE_API_KEY` to it. If they have not given one yet, leave the placeholder and say in the summary that a call cannot connect until they set it. Do not invent a key. Keep `LEMONSLICE_API_URL` unless the user gives a different rooms URL. The start-call route needs both.
 
 ## 3. Add a server-side start-call endpoint
 
@@ -44,7 +86,7 @@ app/api/lemonslice/start-call/route.ts
 and the implementation should use:
 
 ```ts
-import { createRoomHandler } from "@lemonslice/hosted-call/server";
+import { createRoomHandler } from "@your-org/hosted-lemonslice-call/server";
 ```
 
 The basic configuration is:
@@ -52,7 +94,7 @@ The basic configuration is:
 ```ts
 export const POST = createRoomHandler({
   apiKey: process.env.LEMONSLICE_API_KEY!,
-  lemonSliceUrl: process.env.LEMONSLICE_API_URL!,
+  lemonSliceUrl: process.env.LEMONSLICE_API_URL ?? "https://lemonslice.com/api/liveai/rooms",
 
   // Optional. Sent as livekit_agent_name_override. Leave unset for the default agent.
   livekitAgentNameOverride: process.env.LEMONSLICE_LIVEKIT_AGENT_NAME,
@@ -92,6 +134,10 @@ Do not invent a fake authentication system.
 
 If the application has no authentication and the desired page is intentionally public, mention this in your completion summary rather than adding arbitrary auth infrastructure.
 
+### Visitor voice
+
+If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead of the configured `voiceId`. Choosing **Suggested** keeps the configured voice. When the room has a known voice id, pass that same id as `suggestedVoiceId` on `<LemonSliceCall>` so the Suggested row is labeled with the voice name when it matches a listed voice.
+
 ## 4. Configure the avatar
 
 Use these initial values unless the existing application already provides equivalent configuration:
@@ -119,7 +165,6 @@ Supported room values are:
 - `prompt`: LLM prompt / knowledge base, maximum 40,000 characters.
 - `voiceId`: Fish Audio voice ID.
 - `agentImageUrl`: public HTTPS avatar image.
-- `webhookUrl`: optional per-user webhook override.
 
 The room configuration can also be dynamic:
 
@@ -142,7 +187,7 @@ Only use dynamic configuration if doing so naturally fits the existing applicati
 Import:
 
 ```ts
-import "@lemonslice/hosted-call/styles.css";
+import "@your-org/hosted-lemonslice-call/styles.css";
 ```
 
 Put this in the application's appropriate global/root entry point.
@@ -160,7 +205,7 @@ Avoid importing the stylesheet repeatedly in individual components.
 Import:
 
 ```tsx
-import { LemonSliceCall } from "@lemonslice/hosted-call";
+import { LemonSliceCall } from "@your-org/hosted-lemonslice-call";
 ```
 
 Render it somewhere appropriate in the existing UI:
@@ -172,35 +217,37 @@ Render it somewhere appropriate in the existing UI:
 />
 ```
 
-The component fills its parent, so make sure its parent has an appropriate explicit or constrained height.
+The component fills its parent. Give that parent a height, or the call collapses. A full-page call can use `style={{ height: "100dvh" }}`. A panel should use the height that region already has.
+
+`<LemonSliceCall>` already has a pre-call screen and a **Start call** button. Do not add a second one.
+
+In the Next.js App Router, render it from a Client Component. Add `"use client"` to the file that contains `<LemonSliceCall>`, or render it from a small client wrapper that a Server Component page imports.
 
 Use the SAME avatar image for the client-side `agentImageUrl` and the server-side room `agentImageUrl`.
 
-Available component props include:
+| Prop | |
+| --- | --- |
+| `startCallUrl` | The application's start-call endpoint from step 3. |
+| `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
+| `onEnded` | Optional. Called when the call ends. |
+| `suggestedVoiceId` | Optional. The voice the room uses for **Suggested**; names that row when it matches a listed voice. |
+| `models` | Optional. Video models in dropdown order; the first is the default. Each entry is `"standard"` or `"premium"`, or `{ model, label?, description? }`. `description` is a short subtitle; the menu clips the rest. Repeats and unknown ids are dropped. One entry hides the dropdown. Omit it to offer Standard then Premium. |
+| `theme` | `"system"` (default), `"light"`, or `"dark"`. |
+| `drift` | Slow float of the portrait. Off by default. |
+| `glint` | Sparkles in front of the portrait. Off by default. |
+| `edgeFade` | Dissolves the frame into the backdrop. Off by default. |
+| `className` | Optional positioning/styling hook. |
 
-```ts
-startCallUrl
-agentImageUrl
-models
-theme
-drift
-glint
-edgeFade
-className
+Match the existing application's design with these props. Do not substantially redesign surrounding pages just to add LemonSlice. Do not edit files inside `node_modules` or the installed package.
+
+Only when you linked a local checkout may you change that checkout: `src/styles.css` for colors and fonts, `src/ui/` for layout. Leave `src/core/` and `src/server/` alone. Then rebuild the checkout and restart the app:
+
+```bash
+pnpm build
+cd ../your-app && rm -rf .next && pnpm dev
 ```
 
-where:
-
-- `models`: optional. Video models in dropdown order; the first is the default. Each entry is `"standard"` or `"premium"`, or `{ model, label?, description? }` where `description` is a subtitle under the row. Omit it to offer Standard then Premium.
-- `theme`: `"system"`, `"light"`, or `"dark"`; default is `"system"`.
-- `drift`: enables slow avatar movement.
-- `glint`: enables foreground sparkles.
-- `edgeFade`: fades the stage edges into its backdrop.
-- `className`: optional positioning/styling hook.
-
-Match the existing application's design. Do not substantially redesign surrounding pages just to add LemonSlice.
-
-## 8. Validate the integration
+## 7. Validate the integration
 
 After making the changes:
 
@@ -214,12 +261,16 @@ Do not modify unrelated code just to make pre-existing lint/test failures disapp
 
 Verify that:
 
-- `LEMONSLICE_API_KEY` is never included in client-side code.
+- `LEMONSLICE_API_KEY` is only in the server env file, never in client code.
+- `LEMONSLICE_API_URL` is set, or the route falls back to `https://lemonslice.com/api/liveai/rooms`.
 - The frontend calls the application's `/api/lemonslice/start-call` endpoint rather than LemonSlice directly.
-- `@lemonslice/hosted-call/styles.css` is loaded.
-- `LemonSliceCall` has a parent with usable dimensions.
+- Imports use the installed package's `name`, including `./server` and `./styles.css`.
+- The styles import is loaded once, from the root layout, using the real package name.
+- `LemonSliceCall` is rendered from a Client Component and has a parent with a usable height.
+- The client `agentImageUrl` and the room `agentImageUrl` are the same URL.
 - Existing authentication is respected.
 - The project still builds successfully.
+- If `LEMONSLICE_API_KEY` is still empty, the summary says a call cannot connect until the user sets it.
 
 ## Important constraints
 
