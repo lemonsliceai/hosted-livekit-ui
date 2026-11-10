@@ -40,6 +40,21 @@ export type Session = {
   overrides?: string[];
 };
 
+/** The texts the director runs with, for replicating a log. Long ones are cut; the hash is of the full text. */
+export type Prompts = {
+  time: string;
+  jev_question?: string;
+  director_prompt?: string;
+  director_suffix?: string;
+  character?: string;
+  writer_model?: string;
+  jev_model?: string;
+  jev_threshold?: number;
+  agent_commit?: string | null;
+  sha256?: Record<string, string>;
+  truncated?: string[];
+};
+
 /**
  * The slice of a LiveKit Room this folder uses, so it needs no LiveKit import.
  * `LemonSliceCall`'s `onRoom` hands out the real room, which satisfies this.

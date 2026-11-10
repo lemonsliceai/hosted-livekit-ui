@@ -26,7 +26,7 @@
 .busy { color: #e0b96a; }
 .error { color: #e07a7a; }
 .text { color: rgba(255, 255, 255, 0.9); white-space: pre-wrap; overflow-wrap: anywhere; }
-.field { margin-top: 4px; display: grid; grid-template-columns: 44px 1fr; gap: 6px; }
+.field { margin-top: 4px; display: grid; grid-template-columns: 72px 1fr; gap: 6px; }
 .key { color: rgba(255, 255, 255, 0.4); }
 .value { white-space: pre-wrap; overflow-wrap: anywhere; }
 .noteText { color: #d8c48a; }

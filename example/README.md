@@ -62,7 +62,11 @@ sent. A note on the whole call sits at the top. The header shows the agent's ses
 record: session id, model, and which prompt overrides were set.
 
 Each call gets its own log, `logs/<start stamp>-<session id>.jsonl`, written by
-`app/api/evals/log`: the session record, every verdict, and every label, note, and
-replay, in the record shape companion-demo's `harness_report.py` reads. `logs/` is
+`app/api/evals/log`. It opens with what you need to replicate the call: a `page` record
+(the character asked for), the agent's `session` record, and its `prompts` record with the
+Jev question, director prompt, suffix, and character prompt the director ran with, the
+model names, threshold, and agent commit (texts over 12,000 characters are cut and
+flagged; a SHA-256 of each full text is included). Then every verdict, and every label,
+note, and replay, in the record shape companion-demo's `harness_report.py` reads. `logs/` is
 gitignored. The code is under `evals/`; the page only passes `onRoom` and wraps the call
 in `EvalsLayout`, both behind the flag.

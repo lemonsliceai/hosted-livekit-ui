@@ -85,11 +85,11 @@ function Row({ v, live, onLabel, onNote, onReplay }: { v: Verdict; live: boolean
       {v.prompt ? field("prompt", v.prompt) : null}
       {v.full_prompt
         ? field(
-            "sent",
+            "full prompt",
             <>
               {showFull ? v.full_prompt : sentPreview(v)}
               <button type="button" className={styles.link} onClick={() => setShowFull((s) => !s)}>
-                {showFull ? "less" : `full (${v.full_prompt.length})`}
+                {showFull ? "less" : `show all (${v.full_prompt.length})`}
               </button>
             </>,
           )
@@ -140,10 +140,10 @@ function Row({ v, live, onLabel, onNote, onReplay }: { v: Verdict; live: boolean
  * Development only. A column beside the call listing what the agent made of each user
  * line, with the truth, a note, and a replay for each, and a note for the whole call.
  */
-export function EvalsPanel({ room }: { room: EvalRoom | null }) {
+export function EvalsPanel({ room, character }: { room: EvalRoom | null; character?: string | null }) {
   const [collapsed, setCollapsed] = useState(false);
   const [editingSessionNote, setEditingSessionNote] = useState(false);
-  const { verdicts, session, sessionNote, label, note, setSessionNote, replay, live } = useEvals(room);
+  const { verdicts, session, prompts, sessionNote, label, note, setSessionNote, replay, live } = useEvals(room, { character });
   if (collapsed) {
     return (
       <aside className={`${styles.panel} ${styles.collapsed}`} aria-label="Action evals">
@@ -165,6 +165,14 @@ export function EvalsPanel({ room }: { room: EvalRoom | null }) {
               session.overrides?.length ? `overrides: ${session.overrides.join(", ")}` : "no overrides",
             ].filter(Boolean).join(" · ")
           : live ? "waiting for the agent's session record…" : "no call"}
+        {session ? (
+          <div>
+            {prompts
+              ? `prompts logged · ${prompts.writer_model ?? "?"} · jev ≥ ${prompts.jev_threshold ?? "?"}${prompts.agent_commit ? ` · agent ${prompts.agent_commit}` : ""}${prompts.truncated?.length ? ` · cut: ${prompts.truncated.join(", ")}` : ""}`
+              : "prompts: waiting…"}
+            {character ? ` · character ${character}` : ""}
+          </div>
+        ) : null}
       </div>
       <div className={styles.sessionNote}>
         {editingSessionNote ? (
@@ -193,10 +201,10 @@ export function EvalsPanel({ room }: { room: EvalRoom | null }) {
 }
 
 /** The panel beside the call. Wrap `<LemonSliceCall>` in it; the call shrinks to the remaining width. */
-export function EvalsLayout({ room, children }: { room: EvalRoom | null; children: ReactNode }) {
+export function EvalsLayout({ room, character, children }: { room: EvalRoom | null; character?: string | null; children: ReactNode }) {
   return (
     <div className={styles.layout}>
-      <EvalsPanel room={room} />
+      <EvalsPanel room={room} character={character} />
       <div className={styles.call}>{children}</div>
     </div>
   );

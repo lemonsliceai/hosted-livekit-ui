@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { logRecord } from "./log";
-import type { DataListener, EvalRoom, Session, Truth, Verdict } from "./types";
+import type { DataListener, EvalRoom, Prompts, Session, Truth, Verdict } from "./types";
 
 const EVALS_TOPIC = "agent/evals"; // agent -> page
 const CONTROL_TOPIC = "agent/evals-control"; // page -> agent
@@ -20,21 +20,32 @@ function stamp(date = new Date()): string {
  * time and the LemonSlice session id (room name until the id is known). Every record the
  * agent sends and every mark made here is appended to it.
  */
-export function useEvals(room: EvalRoom | null) {
+export function useEvals(room: EvalRoom | null, options: { character?: string | null } = {}) {
   const [verdicts, setVerdicts] = useState<Verdict[]>([]);
   const [session, setSession] = useState<Session | null>(null);
+  const [prompts, setPrompts] = useState<Prompts | null>(null);
   const [sessionNote, setSessionNoteState] = useState("");
   const startedAt = useRef<string>(stamp());
   const logKey = useRef<string | null>(null);
-  const roomName = useRef<string>("");
+  // The file is named by the LemonSlice session id, which only the agent knows. Records
+  // written before its first record arrives wait here; if the call ends first, they are
+  // filed under the LiveKit room name instead.
+  const pending = useRef<Record<string, unknown>[]>([]);
 
-  const log = useCallback((record: Record<string, unknown>) => {
-    if (!logKey.current) {
-      const id = typeof record.session_id === "string" && record.session_id ? record.session_id : roomName.current || "unknown";
-      logKey.current = `${startedAt.current}-${id}`;
-    }
-    logRecord({ session: logKey.current, ...record });
+  const setKey = useCallback((id: string) => {
+    logKey.current = `${startedAt.current}-${id}`;
+    for (const record of pending.current) logRecord({ session: logKey.current, ...record });
+    pending.current = [];
   }, []);
+
+  const log = useCallback(
+    (record: Record<string, unknown>) => {
+      if (!logKey.current && typeof record.session_id === "string" && record.session_id) setKey(record.session_id);
+      if (logKey.current) logRecord({ session: logKey.current, ...record });
+      else pending.current.push(record);
+    },
+    [setKey],
+  );
 
   const send = useCallback(
     (body: Record<string, unknown>) => {
@@ -51,11 +62,14 @@ export function useEvals(room: EvalRoom | null) {
     // A new call: new file, clean slate.
     startedAt.current = stamp();
     logKey.current = null;
-    roomName.current = room.name;
+    pending.current = [];
     setVerdicts([]);
     setSession(null);
+    setPrompts(null);
     setSessionNoteState("");
     let gotSession = false;
+    // What the page knows: the character it asked for. Filed once the agent names the session.
+    log({ kind: "page", time: new Date().toISOString(), character: options.character ?? null });
 
     const onData: DataListener = (payload, _participant, _kind, topic) => {
       if (topic !== EVALS_TOPIC) return;
@@ -70,6 +84,11 @@ export function useEvals(room: EvalRoom | null) {
         gotSession = true;
         setSession(rest as Session);
         log({ kind: "session", ...rest });
+        return;
+      }
+      if (type === "prompts") {
+        setPrompts(rest as Prompts);
+        log({ kind: "prompts", ...rest });
         return;
       }
       if (type === "verdict" && typeof rest.turn === "string" && typeof rest.decision === "string") {
@@ -101,8 +120,13 @@ export function useEvals(room: EvalRoom | null) {
     return () => {
       room.off("dataReceived", onData);
       timers.forEach((t) => window.clearTimeout(t));
+      // The call ended before the agent named it: file what we have under the room name,
+      // which is known by now even if it was empty at connect.
+      if (!logKey.current && pending.current.length) setKey(room.name || "unknown");
     };
-  }, [room, log, send]);
+    // options.character is read once per call, when the room connects.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room, log, send, setKey]);
 
   const patch = useCallback((turn: string, change: (v: Verdict) => Verdict) => {
     setVerdicts((current) => current.map((v) => (v.turn === turn ? change(v) : v)));
@@ -156,5 +180,5 @@ export function useEvals(room: EvalRoom | null) {
     [patch, send],
   );
 
-  return { verdicts, session, sessionNote, label, note, setSessionNote, replay, live: room !== null };
+  return { verdicts, session, prompts, sessionNote, label, note, setSessionNote, replay, live: room !== null };
 }
