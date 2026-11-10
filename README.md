@@ -1,4 +1,4 @@
-# @lemonslice/hosted-call-ui
+# @lemonslice/hosted-call
 
 A React component that puts a talking LemonSlice avatar on your site.
 
@@ -13,7 +13,7 @@ A React component that puts a talking LemonSlice avatar on your site.
 ## 1. See it in action (spin up the example)
 
 ```bash
-git clone git@github.com:lemonsliceai/hosted-call-xyz.git lemonslice
+git clone git@github.com:lemonsliceai/hosted-call-{customer}.git lemonslice
 cd lemonslice
 
 pnpm i                      # build the package
@@ -28,20 +28,125 @@ Open <http://localhost:3001> and play with your UI.
 
 ## 2. Install it into your app
 
+### 1. Fork this repository into your GitHub account
+
+1. On GitHub, click **Fork**.
+2. Choose your personal account or organization as the owner and keep it private.
+3. Clone your fork locally alongside your application:
+
+```bash
+git clone git@github.com:<your-org>/<your-fork>.git hosted-lemonslice-call
+cd hosted-lemonslice-call
+pnpm install
+pnpm build
+```
+
+4. In `package.json`, update the package `name` to your own scope, for example `@your-org/hosted-lemonslice-call`.
+
+---
+
+### 2. Use package locally
+
+While developing, link the package directly into your app without publishing:
+
+**In `hosted-lemonslice-call/`:**
+
+```bash
+pnpm build
+pnpm link --global
+```
+
+*(You can also run `pnpm dev` in `hosted-lemonslice-call/` so `tsup --watch` rebuilds on save).*
+
+**In your app:**
+
+```bash
+pnpm link --global @your-org/hosted-lemonslice-call
+```
+
+*(If you use `npm`, run `npm link` inside `hosted-lemonslice-call/` and `npm link @your-org/hosted-lemonslice-call` in your app).*
+
+Your app now reads the local `hosted-lemonslice-call/dist` bundle directly.
+
+---
+
+### 3. Use package in production
+
+#### Deploy to npm (private or public)
+
+When you are ready to release, publish from your `hosted-lemonslice-call/` directory:
+
+```bash
+npm login
+pnpm build
+```
+
+> **Bump the version before every publish**:
+>
+> ```bash
+> npm version patch   # bug fixes: 1.0.0 → 1.0.1
+> npm version minor   # new features, backwards compatible: 1.0.0 → 1.1.0
+> npm version major   # breaking changes: 1.0.0 → 2.0.0
+> ```
+
+Then publish your package:
+
+- **Private package (recommended):** keeps your code restricted to your npm organization.
+
+  ```bash
+  npm publish --access restricted
+  ```
+
+  *(Requires an npm paid organization plan or private registry).*
+
+- **Public package:** visible and installable by anyone who knows the package name.
+
+  ```bash
+  npm publish --access public
+  ```
+
+---
+
+#### Run in production pointing to your npm package
+
+In your app's `package.json`, install your published package:
+
 ```json
 {
   "dependencies": {
-    "@lemonslice/hosted-call": "github:lemonsliceai/hosted-call-xyz#v1.0.0"
+    "@your-org/hosted-lemonslice-call": "^1.0.0"
   }
 }
 ```
 
-Pin the tag. It builds itself on install.
+Run `pnpm install` (or `npm install`) and commit `package.json` plus your lockfile.
 
-If your CI builds from a private repo, give it read access — a deploy key, or:
+#### CI / Hosting environment variable for private packages: `NPM_TOKEN`
+
+If you published as a **private** npm package, your build environment (Vercel, Docker, AWS, etc.) needs access to install it:
+
+1. Generate a read-only granular access token on npm ([npmjs.com/settings/tokens](https://www.npmjs.com/settings/tokens)) scoped to read `@your-org/hosted-lemonslice-call`.
+2. Add an environment variable / secret named `NPM_TOKEN` in your hosting platform or CI provider with that token as the value.
+3. Most platforms (like Vercel and Netlify) automatically detect `NPM_TOKEN` and authenticate npm installs. For custom CI or Docker builds, create or check in an `.npmrc` file at the root of your application:
+
+   ```ini
+   //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+   ```
+
+*(If your package is public, you do not need `NPM_TOKEN` — platforms install it without authentication).*
+
+### 4. (As necessary) Pull updates from LemonSlice
+
+LemonSlice ships updates to `lemonsliceai/hosted-call-{customer}`. Pull them into your fork to pick them up.
 
 ```bash
-git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "git@github.com:"
+git remote add upstream git@github.com:lemonsliceai/hosted-call-{customer}.git   # once
+git fetch upstream
+git checkout main
+git merge upstream/main
+pnpm install
+pnpm build
+git push origin main
 ```
 
 ## 3. Set your key — server side only
@@ -60,7 +165,7 @@ Copy this from `example/app/api/lemonslice/start-call/route.ts`:
 
 ```ts
 // app/api/lemonslice/start-call/route.ts
-import { createRoomHandler } from "@lemonslice/hosted-call/server";
+import { createRoomHandler } from "@your-org/hosted-lemonslice-call/server";
 import { auth } from "@/lib/auth";
 
 export const POST = createRoomHandler({
@@ -158,7 +263,7 @@ Add one line to your root layout (usually **`app/layout.tsx`**):
 
 ```tsx
 // app/layout.tsx
-import "@lemonslice/hosted-call/styles.css";
+import "@your-org/hosted-lemonslice-call/styles.css";
 ```
 
 The CSS is prebuilt and scoped to the component, so it doesn't touch the rest of your
@@ -196,7 +301,7 @@ The component fills its parent. Give that parent a height.
 "use client";
 
 import { useState } from "react";
-import { LemonSliceCall } from "@lemonslice/hosted-call";
+import { LemonSliceCall } from "@your-org/hosted-lemonslice-call";
 
 export default function Page() {
   const [open, setOpen] = useState(false);
