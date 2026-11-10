@@ -356,7 +356,7 @@ cd ../your-app && rm -rf .next && pnpm dev
 - `onUserTranscript(transcript, sessionId)`
 - `onAgentTranscript(transcript, sessionId)`
 
-If your moderation service determines that a call needs to be terminated, call the LemonSlice [Control a session](https://lemonslice.com/docs/api-reference/control-session) endpoint from your server with the LemonSlice `session_id` and the `"stop"` action:
+If your moderation service determines that a call needs to be terminated, call the LemonSlice [Control a session](https://lemonslice.com/docs/api-reference/control-session) endpoint from your server with the LemonSlice `session_id` and a `terminate` event:
 
 ```bash
 curl --request POST \
@@ -364,6 +364,6 @@ curl --request POST \
   --header 'Content-Type: application/json' \
   --header 'X-API-Key: <api-key>' \
   --data '{
-    "action": "stop"
+    "event": "terminate"
   }'
 ```
