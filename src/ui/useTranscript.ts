@@ -8,7 +8,8 @@ import {
   type Room,
   type TextStreamReader,
 } from "livekit-client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { onAgentTranscript, onUserTranscript } from "./moderation";
 
 /** Text-stream topic LiveKit agents read. */
 const CHAT_TOPIC = "lk.chat";
@@ -70,9 +71,21 @@ function upsert(messages: TranscriptMessage[], next: TranscriptMessage): Transcr
  * LiveKit's `useChat` sends them: a text stream on `lk.chat`, then the legacy
  * `lk-chat-topic` packet. The bubble id is the text-stream id.
  */
-export function useTranscript() {
+export function useTranscript(sessionId: string | null) {
   const room = useRoomContext();
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
+  const processedTranscripts = useRef(new Set<string>());
+  const scopedSessionId = useRef<string | null>(sessionId);
   const [messages, setMessages] = useState<TranscriptMessage[]>([]);
+
+  const transcriptsFor = useCallback((activeSessionId: string | null) => {
+    if (scopedSessionId.current !== activeSessionId) {
+      processedTranscripts.current = new Set();
+      scopedSessionId.current = activeSessionId;
+    }
+    return processedTranscripts.current;
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +93,11 @@ export function useTranscript() {
     const commit = (message: TranscriptMessage) => {
       if (cancelled || !message.text) return;
       setMessages((current) => upsert(current, message));
+      const processed_transcripts = transcriptsFor(sessionIdRef.current);
+      if (!message.final || message.kind === "event" || processed_transcripts.has(message.id)) return;
+      processed_transcripts.add(message.id);
+      if (message.role === "user") onUserTranscript(message.text, sessionIdRef.current);
+      else onAgentTranscript(message.text, sessionIdRef.current);
     };
 
     const readStream = async (reader: TextStreamReader) => {
@@ -189,16 +207,22 @@ export function useTranscript() {
       room.unregisterTextStreamHandler(TRANSCRIPTION_TOPIC);
       room.unregisterTextStreamHandler(CHAT_TOPIC);
     };
-  }, [room]);
+  }, [room, transcriptsFor]);
 
   const send = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
+      const sentSessionId = sessionIdRef.current;
       const info = await room.localParticipant.sendText(trimmed, { topic: CHAT_TOPIC });
       setMessages((current) =>
         upsert(current, { id: info.id, role: "user", text: trimmed, final: true, kind: "chat" }),
       );
+      const processed_transcripts = transcriptsFor(sessionIdRef.current);
+      if (!processed_transcripts.has(info.id)) {
+        processed_transcripts.add(info.id);
+        onUserTranscript(trimmed, sentSessionId);
+      }
       const legacy = {
         id: info.id,
         timestamp: Date.now(),
@@ -214,7 +238,7 @@ export function useTranscript() {
         console.info("[lemonslice] could not send message in legacy chat format", error);
       }
     },
-    [room],
+    [room, transcriptsFor],
   );
 
   return { messages, send };
