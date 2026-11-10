@@ -75,11 +75,12 @@ export function useTranscript(sessionId: string | null) {
   const room = useRoomContext();
   const sessionIdRef = useRef(sessionId);
   sessionIdRef.current = sessionId;
+  const processedTranscripts = useRef(new Set<string>());
   const [messages, setMessages] = useState<TranscriptMessage[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    const processed_transcripts = new Set<string>();
+    const processed_transcripts = processedTranscripts.current;
 
     const commit = (message: TranscriptMessage) => {
       if (cancelled || !message.text) return;
@@ -207,6 +208,10 @@ export function useTranscript(sessionId: string | null) {
       setMessages((current) =>
         upsert(current, { id: info.id, role: "user", text: trimmed, final: true, kind: "chat" }),
       );
+      if (!processedTranscripts.current.has(info.id)) {
+        processedTranscripts.current.add(info.id);
+        onUserTranscript(trimmed, sessionIdRef.current);
+      }
       const legacy = {
         id: info.id,
         timestamp: Date.now(),
