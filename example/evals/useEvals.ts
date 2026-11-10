@@ -98,6 +98,24 @@ export function useEvals(room: EvalRoom | null, options: { character?: string | 
         log({ kind: verdict.decision, ...verdict });
         return;
       }
+      if (type === "status" && typeof rest.turn === "string" && typeof rest.status === "string") {
+        const status = rest.status;
+        const timings = (rest.timings ?? {}) as Record<string, number>;
+        // reply_done is the agent's own marker, only there to carry a timing; it is not a clip state.
+        setVerdicts((current) =>
+          current.map((v) =>
+            v.turn === rest.turn
+              ? { ...v, ...(status === "reply_done" ? {} : { status }), timings: { ...v.timings, ...timings } }
+              : v,
+          ),
+        );
+        log({ kind: "status", ...rest });
+        return;
+      }
+      if (type === "avatar") {
+        log({ kind: "avatar", ...rest }); // what the deployment actually sends; log only
+        return;
+      }
       if (type === "replay" && typeof rest.turn === "string") {
         const accepted = rest.accepted === true;
         setVerdicts((current) =>
@@ -173,9 +191,9 @@ export function useEvals(room: EvalRoom | null, options: { character?: string | 
 
   /** Play a prompt again, as written or edited. The agent answers with what it actually sent. */
   const replay = useCallback(
-    (turn: string, prompt: string, duration: number, event?: string) => {
-      patch(turn, (v) => ({ ...v, replay: "pending" }));
-      send({ kind: "replay", turn, prompt, duration, ...(event ? { event } : {}) });
+    (turn: string, prompt: string, duration: number, audio: boolean, event?: string) => {
+      patch(turn, (v) => ({ ...v, replay: "pending", status: undefined }));
+      send({ kind: "replay", turn, prompt, duration, audio, ...(event ? { event } : {}) });
     },
     [patch, send],
   );

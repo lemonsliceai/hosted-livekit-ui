@@ -57,8 +57,10 @@ the prompt as sent to the pipeline. The agent must run with `ACTION_EVALS=1`
 (see `hosted-livekit-agent`), or nothing arrives.
 
 Per line: mark it **action** or **no action**, add a **note**, or **replay** the prompt,
-edited or not, with a duration; the agent plays it silently and reports what it actually
-sent. A note on the whole call sits at the top. The header shows the agent's session
+edited or not, with a duration and an audio toggle; the agent plays it silently and reports
+what it actually sent. Rows show `audio` when the writer asked for sound, the clip's status
+as the avatar reports it, and a collapsed `timings` fold: Jev, director, TTFF (request to first frame), user
+ask to first frame, and reply ends to playing. A note on the whole call sits at the top. The header shows the agent's session
 record: session id, model, and which prompt overrides were set.
 
 Each call gets its own log, `logs/<start stamp>-<session id>.jsonl`, written by

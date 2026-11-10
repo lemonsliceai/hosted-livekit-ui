@@ -22,6 +22,16 @@ export type Verdict = {
   state?: string;
   /** What Jev was shown. Logged, not displayed. */
   jev_state?: string;
+  /** The clip is rendered with sound. The writer decides. */
+  audio?: boolean;
+  /**
+   * Seconds per phase. `jev`, `director`: model calls, request to response. From the avatar's
+   * status events: `ttff` (video prompt sent to rendered), `to_first_frame` (user's line to the clip
+   * rendered, the headline), `reply_to_play` (her lead-in said to playing).
+   */
+  timings?: Record<string, number>;
+  /** The clip's last reported status: generating, ready, started, failed, done. */
+  status?: string;
   /** Page-side marks, also logged. */
   truth?: Truth;
   note?: string;

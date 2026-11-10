@@ -22,7 +22,8 @@ export const template: Partial<AvatarConfig> = {
     // Yes/no question scored against each user line; 0.6 or above is an action request.
     jevPrompt: "",
     // Director system prompt. `{character}` and `{max_chars}` are filled in by the server.
-    // Put worked examples directly in the text.
+    // Put worked examples directly in the text. The writer's tool call has an optional
+    // `audio` boolean; tell it when to set it (sound core to the action), else clips are silent.
     directorPrompt: "",
     // Appended to every video prompt. Keep it under about 400 characters.
     directorSuffix: "",

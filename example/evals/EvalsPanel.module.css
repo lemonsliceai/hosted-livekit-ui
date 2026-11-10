@@ -49,3 +49,13 @@
 .textarea:focus { outline: none; border-color: rgba(255, 255, 255, 0.45); }
 .select { padding: 2px 6px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; background: rgba(0, 0, 0, 0.4); color: rgba(255, 255, 255, 0.8); font: inherit; }
 .sessionNote { margin-bottom: 10px; }
+
+.timings { margin-top: 4px; color: rgba(255, 255, 255, 0.5); }
+.summary { cursor: pointer; user-select: none; }
+.summary:hover { color: rgba(255, 255, 255, 0.8); }
+.dl { margin: 4px 0 0 14px; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; }
+.dlRow { display: contents; }
+.dlRow dt { color: rgba(255, 255, 255, 0.4); }
+.dlRow dd { margin: 0; }
+.audio { color: #7cc7e8; }
+.check { display: inline-flex; align-items: center; gap: 4px; color: rgba(255, 255, 255, 0.7); }

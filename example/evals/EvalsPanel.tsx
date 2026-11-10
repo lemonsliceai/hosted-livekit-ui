@@ -5,7 +5,8 @@ import styles from "./EvalsPanel.module.css";
 import type { EvalRoom, Truth, Verdict } from "./types";
 import { useEvals } from "./useEvals";
 
-const DURATIONS = [3, 5, 10] as const;
+/** Clip lengths the agent accepts (DURATIONS in its actions.py). */
+const DURATIONS = [3, 6.4, 10, 15] as const;
 /** How much of the suffix to show after the writer's prompt before the ellipsis. */
 const SUFFIX_PREVIEW_CHARS = 60;
 
@@ -21,6 +22,37 @@ function sentPreview(v: Verdict): string {
   const head = v.prompt && full.startsWith(v.prompt) ? v.prompt.length : 0;
   const rest = full.slice(head);
   return rest.length <= SUFFIX_PREVIEW_CHARS ? full : `${full.slice(0, head)}${rest.slice(0, SUFFIX_PREVIEW_CHARS).trimEnd()}…`;
+}
+
+/** The model calls behind a verdict, in order, folded under one line. Collapsed by default. */
+const TIMING_PHASES: [string, string][] = [
+  ["jev", "jev"],
+  ["director", "director"],
+  ["ttff", "TTFF (request → first frame)"],
+  ["to_first_frame", "user ask → first frame"],
+  ["reply_to_play", "reply ends → playing (negative: clip started first)"],
+];
+
+function Timings({ timings, model }: { timings: Record<string, number>; model?: string }) {
+  const phases = TIMING_PHASES.filter(([key]) => timings[key] != null);
+  if (phases.length === 0) return null;
+  // The summary shows the number that matters most of what has arrived so far.
+  const headline =
+    timings.to_first_frame != null ? `ask → first frame ${timings.to_first_frame.toFixed(2)} s`
+    : `director ${(timings.director ?? 0).toFixed(2)} s`;
+  return (
+    <details className={styles.timings}>
+      <summary className={styles.summary}>timings · {headline}</summary>
+      <dl className={styles.dl}>
+        {phases.map(([key, title]) => (
+          <div key={key} className={styles.dlRow}>
+            <dt>{title}{key === "director" && model ? ` (${model})` : ""}</dt>
+            <dd>{timings[key].toFixed(2)} s</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  );
 }
 
 function Pill({ on, disabled, title, onClick, children }: { on?: boolean; disabled?: boolean; title?: string; onClick: () => void; children: ReactNode }) {
@@ -60,10 +92,11 @@ function Editor({ initial, rows = 3, extra, onSave, onCancel }: { initial: strin
   );
 }
 
-function Row({ v, live, onLabel, onNote, onReplay }: { v: Verdict; live: boolean; onLabel: (truth: Truth | null) => void; onNote: (text: string) => void; onReplay: (prompt: string, duration: number) => void }) {
+function Row({ v, live, writerModel, onLabel, onNote, onReplay }: { v: Verdict; live: boolean; writerModel?: string; onLabel: (truth: Truth | null) => void; onNote: (text: string) => void; onReplay: (prompt: string, duration: number, audio: boolean) => void }) {
   const [showFull, setShowFull] = useState(false);
   const [editing, setEditing] = useState<"note" | "replay" | null>(null);
   const [duration, setDuration] = useState<number>(v.duration ?? 5);
+  const [audio, setAudio] = useState<boolean>(v.audio ?? false);
   const took = tookAsAsk(v);
   const agreed = v.truth && took !== undefined ? (v.truth === "action") === took : null;
   const field = (key: string, value: ReactNode, className = "") => (
@@ -75,6 +108,8 @@ function Row({ v, live, onLabel, onNote, onReplay }: { v: Verdict; live: boolean
         <span>{v.jev == null ? "jev —" : `jev ${v.jev.toFixed(2)}`}</span>
         <span className={styles[v.decision] ?? ""}>{v.decision}{v.state ? ` (${v.state})` : ""}</span>
         {v.duration != null ? <span>{v.duration} s</span> : null}
+        {v.audio ? <span className={styles.audio}>audio</span> : null}
+        {v.status ? <span className={v.status === "failed" ? styles.error : styles.status}>clip {v.status}</span> : null}
         {agreed != null ? <span className={agreed ? styles.agree : styles.disagree}>{agreed ? "truth ✓" : "truth ✗"}</span> : null}
         {v.replays ? <span>replayed ×{v.replays}</span> : null}
         <span>{v.time.slice(11, 19)}</span>
@@ -95,18 +130,24 @@ function Row({ v, live, onLabel, onNote, onReplay }: { v: Verdict; live: boolean
           )
         : null}
       {v.note && editing !== "note" ? field("note", v.note, styles.noteText) : null}
+      {v.timings ? <Timings timings={v.timings} model={writerModel} /> : null}
 
       {editing === "replay" ? (
         <Editor
           initial={v.prompt ?? ""}
           rows={5}
           extra={
-            <select className={styles.select} value={duration} onChange={(e) => setDuration(Number(e.target.value))} aria-label="Duration">
-              {DURATIONS.map((d) => <option key={d} value={d}>{d} s</option>)}
-            </select>
+            <>
+              <select className={styles.select} value={duration} onChange={(e) => setDuration(Number(e.target.value))} aria-label="Duration">
+                {DURATIONS.map((d) => <option key={d} value={d}>{d} s</option>)}
+              </select>
+              <label className={styles.check}>
+                <input type="checkbox" checked={audio} onChange={(e) => setAudio(e.target.checked)} /> audio
+              </label>
+            </>
           }
           onSave={(text) => {
-            if (text.trim()) onReplay(text.trim(), duration);
+            if (text.trim()) onReplay(text.trim(), duration, audio);
             setEditing(null);
           }}
           onCancel={() => setEditing(null)}
@@ -192,7 +233,7 @@ export function EvalsPanel({ room, character }: { room: EvalRoom | null; charact
       ) : (
         <ol className={styles.list}>
           {verdicts.map((v) => (
-            <Row key={v.turn} v={v} live={live} onLabel={(t) => label(v.turn, t)} onNote={(t) => note(v.turn, t)} onReplay={(p, d) => replay(v.turn, p, d, v.event)} />
+            <Row key={v.turn} v={v} live={live} writerModel={prompts?.writer_model} onLabel={(t) => label(v.turn, t)} onNote={(t) => note(v.turn, t)} onReplay={(p, d, a) => replay(v.turn, p, d, a, v.event)} />
           ))}
         </ol>
       )}
