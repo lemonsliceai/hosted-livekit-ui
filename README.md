@@ -43,8 +43,6 @@ pnpm build
 
 4. In `package.json`, update the package `name` to your own scope, for example `@your-org/hosted-lemonslice-call`.
 
----
-
 ### 2. Use package locally
 
 While developing, link the package directly into your app without publishing:
@@ -68,11 +66,7 @@ pnpm link --global @your-org/hosted-lemonslice-call
 
 Your app now reads the local `hosted-lemonslice-call/dist` bundle directly.
 
----
-
-### 3. Use package in production
-
-#### Deploy to npm (private or public)
+### 3. Deploy npm package for production
 
 When you are ready to release, publish from your `hosted-lemonslice-call/` directory:
 
@@ -105,9 +99,7 @@ Then publish your package:
   npm publish --access public
   ```
 
----
-
-#### Run in production pointing to your npm package
+### 4. Run in production pointing to your npm package
 
 In your app's `package.json`, install your published package:
 
@@ -135,7 +127,7 @@ If you published as a **private** npm package, your build environment (Vercel, D
 
 *(If your package is public, you do not need `NPM_TOKEN` — platforms install it without authentication).*
 
-### 4. (As necessary) Pull updates from LemonSlice
+### 5. (As necessary) Pull updates from LemonSlice
 
 LemonSlice ships updates to `lemonsliceai/hosted-call-{customer}`. Pull them into your fork to pick them up.
 
