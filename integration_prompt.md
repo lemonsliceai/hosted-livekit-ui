@@ -15,6 +15,8 @@ First inspect the codebase and determine:
 - Where global/root CSS imports live.
 - Which page or component is the most appropriate place to render the LemonSlice avatar. Ask user for guidance here if they have not provided a location this component should be used.
 
+If the app is not React 18 or newer, stop and say so. If it has no server where a secret can stay, stop. Do not invent a backend, and do not put `LEMONSLICE_API_KEY` in client code.
+
 Prefer adapting the integration to the existing application rather than introducing new architectural patterns.
 
 ## 1. Install LemonSlice
@@ -58,6 +60,8 @@ You are in the user's application. This package is not that application. Do not 
 
    `<owner>/<repo>` is the customer's fork, or the repo on the LemonSlice GitHub account (`lemonsliceai/hosted-call-{customer}`). Use the repo the user names. Ask for it when they have not given one.
 
+   If that install fails because the repo or npm package is private, stop and ask the user for access. Do not copy the package source into the app, and do not make the package public.
+
 After it is installed, open that package's `package.json` and read `name`. Use that exact name for every import below. `@your-org/hosted-lemonslice-call` in this document is only a placeholder.
 
 Do not clone or copy the example application into this repository.
@@ -68,10 +72,9 @@ Put these in the server env file the app already uses. For Next.js that is `.env
 
 ```bash
 LEMONSLICE_API_KEY=
-LEMONSLICE_API_URL=https://lemonslice.com/api/liveai/rooms
 ```
 
-Ask the user for their LemonSlice API key and set `LEMONSLICE_API_KEY` to it. If they have not given one yet, leave the placeholder and say in the summary that a call cannot connect until they set it. Do not invent a key. Keep `LEMONSLICE_API_URL` unless the user gives a different rooms URL. The start-call route needs both.
+Ask the user for their LemonSlice API key and set `LEMONSLICE_API_KEY` to it. If they have not given one yet, leave the placeholder and say in the summary that a call cannot connect until they set it. Do not invent a key.
 
 ## 3. Add a server-side start-call endpoint
 
@@ -108,6 +111,10 @@ export const POST = createRoomHandler({
 ```
 
 However, adapt this implementation to the application's existing architecture.
+
+`createRoomHandler` returns `(request: Request) => Promise<Response>`. On the Next.js App Router, export that function as `POST`. On any other server, adapt it to the route style the app already uses. Do not reimplement the LemonSlice request, and do not change the app's framework so this route can exist.
+
+`startCallUrl` must be a path the browser can POST to. Include the app's existing API prefix or `basePath` when it has one.
 
 ### Authentication
 
@@ -150,15 +157,15 @@ room: {
 }
 ```
 
-The `agentImageUrl` above is only a placeholder.
+The `agentImageUrl` above is only a placeholder. The room value must be a public `https://` URL that LemonSlice's servers can fetch. A site path such as `/avatar.png`, or a `localhost` URL, does not work.
 
 Look through the application's existing assets/configuration for an appropriate avatar image.
 
-If there is an obvious intended avatar image, use its public HTTPS URL if one is available.
+If there is an obvious intended avatar image and it already has a public HTTPS URL, use that URL.
 
 Otherwise keep the placeholder clearly marked so the developer knows it must be replaced.
 
-Do not fabricate a production CDN URL.
+Do not fabricate a production CDN URL. Keep the `voiceId` above unless the user provides a Fish Audio voice id. Do not invent one.
 
 Supported room values are:
 
@@ -192,11 +199,7 @@ import "@your-org/hosted-lemonslice-call/styles.css";
 
 Put this in the application's appropriate global/root entry point.
 
-For a Next.js App Router application this will usually be:
-
-```text
-app/layout.tsx
-```
+For a Next.js App Router application this will usually be `app/layout.tsx`. For Vite and other bundlers, import it once from the client entry, usually `src/main.tsx`.
 
 Avoid importing the stylesheet repeatedly in individual components.
 
@@ -222,6 +225,8 @@ The component fills its parent. Give that parent a height, or the call collapses
 `<LemonSliceCall>` already has a pre-call screen and a **Start call** button. Do not add a second one.
 
 In the Next.js App Router, render it from a Client Component. Add `"use client"` to the file that contains `<LemonSliceCall>`, or render it from a small client wrapper that a Server Component page imports.
+
+The page must be served over `https` or `localhost` so the browser can grant the microphone. If the call is inside an iframe, that iframe must allow the microphone.
 
 Use the SAME avatar image for the client-side `agentImageUrl` and the server-side room `agentImageUrl`.
 
@@ -262,7 +267,6 @@ Do not modify unrelated code just to make pre-existing lint/test failures disapp
 Verify that:
 
 - `LEMONSLICE_API_KEY` is only in the server env file, never in client code.
-- `LEMONSLICE_API_URL` is set, or the route falls back to `https://lemonslice.com/api/liveai/rooms`.
 - The frontend calls the application's `/api/lemonslice/start-call` endpoint rather than LemonSlice directly.
 - Imports use the installed package's `name`, including `./server` and `./styles.css`.
 - The styles import is loaded once, from the root layout, using the real package name.
@@ -289,3 +293,5 @@ When finished, provide a concise summary containing:
 
 1. Files changed.
 2. Where the LemonSlice component was added.
+3. The start-call route path.
+4. Whether `LEMONSLICE_API_KEY` is set, or still a placeholder.
