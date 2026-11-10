@@ -16,6 +16,8 @@ export type StartCallOptions = {
   voiceId?: string;
   /** LemonSlice avatar model for this call. */
   model?: "cwm-1-lite" | "cwm-1" | "roleplay";
+  /** Edited image to use instead of the server's configured image. */
+  agentImageUrl?: string;
 };
 
 export type RoomRequest = {
@@ -28,7 +30,7 @@ export type RoomRequest = {
  * DB queries, and sending the LemonSlice request.
  */
 export async function createRoom(
-  { startCallUrl, voiceId, model }: RoomRequest & StartCallOptions,
+  { startCallUrl, voiceId, model, agentImageUrl }: RoomRequest & StartCallOptions,
   signal?: AbortSignal,
 ): Promise<RoomConnection> {
   const response = await fetch(startCallUrl, {
@@ -38,6 +40,7 @@ export async function createRoom(
       supports_vp9: supportsVP9(),
       ...(voiceId ? { voice_id: voiceId } : {}),
       ...(model ? { model } : {}),
+      ...(agentImageUrl ? { agent_image_url: agentImageUrl } : {}),
     }),
     signal,
   });

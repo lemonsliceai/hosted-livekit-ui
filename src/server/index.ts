@@ -102,6 +102,7 @@ export function createRoomHandler({
       supports_vp9?: unknown;
       voice_id?: unknown;
       model?: unknown;
+      agent_image_url?: unknown;
     };
     const supportsVp9 = browser?.supports_vp9 === true;
     const requestedVoiceId =
@@ -110,6 +111,7 @@ export function createRoomHandler({
         : null;
     const requestedModel =
       typeof browser?.model === "string" && browser.model.trim() ? browser.model.trim() : null;
+    const requestedImageUrl = httpsImageUrl(browser?.agent_image_url);
 
     if (authorize) {
       const rejection = await authorize(request);
@@ -139,7 +141,7 @@ export function createRoomHandler({
           transport_type: "livekit",
           prompt,
           voice_id: voiceId,
-          agent_image_url: agentImageUrl,
+          agent_image_url: requestedImageUrl ?? agentImageUrl,
           supports_vp9: supportsVp9,
           ...(requestedModel ? { model: requestedModel } : {}),
           ...(sessionWebhookUrl ? { webhook_url: sessionWebhookUrl } : {}),
@@ -161,3 +163,16 @@ export function createRoomHandler({
     return Response.json({ room_url, token, session_id }, { status: upstream.status });
   };
 }
+
+function httpsImageUrl(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const imageUrl = value.trim();
+  if (!imageUrl || imageUrl.length > 2048) return null;
+  try {
+    return new URL(imageUrl).protocol === "https:" ? imageUrl : null;
+  } catch {
+    return null;
+  }
+}
+
+export { createAvatarVariantHandler, type CreateAvatarVariantHandlerOptions } from "./avatar-variant";

@@ -293,22 +293,82 @@
   white-space: nowrap;
 }
 
-.lemonslice-call .ls-calling {
+.lemonslice-call .ls-preparing {
   pointer-events: none;
-  z-index: 2;
   position: absolute;
-  bottom: 35px;
+  z-index: 3;
+  bottom: 16px;
   left: 50%;
-  margin: 0;
-  transform: translate(-50%, 50%);
-  color: #ffffff;
+  display: inline-flex;
+  transform: translateX(-50%);
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* Same height as .ls-precall-start: its 24px icon sets the height, so this is 50px with border and padding. */
+  height: 50px;
+  border-radius: 9999px;
+  padding: 12px 20px;
+  background: rgba(140, 140, 140, 0.4);
+  color: #fafafa;
   font-size: 16px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
-  text-shadow:
-    0 0 4px rgba(0, 0, 0, 0.15),
-    0 0 16px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(20px);
+}
+
+.lemonslice-call .ls-preparing-label {
+  position: relative;
+  z-index: 1;
+}
+
+.lemonslice-call .ls-preparing-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  background: rgba(255, 255, 255, 0.16);
+  /* Both crops run together: ~14s typical, ~20s at the slow end. Hold at 92% after that. */
+  animation: ls-preparing-progress 20s linear forwards;
+}
+
+@keyframes ls-preparing-progress {
+  0% {
+    width: 0;
+  }
+  25% {
+    width: 45%;
+  }
+  70% {
+    width: 82%;
+  }
+  100% {
+    width: 92%;
+  }
+}
+
+.lemonslice-call .ls-calling {
+  pointer-events: none;
+  z-index: 3;
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  display: inline-flex;
+  transform: translateX(-50%);
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  margin: 0;
+  border-radius: 9999px;
+  padding: 12px 20px;
+  background: rgba(140, 140, 140, 0.4);
+  color: #fafafa;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  backdrop-filter: blur(20px);
 }
 
 .lemonslice-call .ls-mic-off {
@@ -556,7 +616,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  height: 50px;
   border-radius: 9999px;
   padding: 12px 20px;
   background: rgba(0, 211, 49, 0.9);
@@ -571,6 +631,18 @@
 
 .lemonslice-call .ls-precall-start:hover {
   background: #00d331;
+}
+
+.lemonslice-call .ls-preparing::after,
+.lemonslice-call .ls-calling::after,
+.lemonslice-call .ls-precall-start::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  pointer-events: none;
 }
 
 .lemonslice-call .ls-fade-top {
