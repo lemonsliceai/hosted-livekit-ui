@@ -18,10 +18,9 @@ import {
   type LemonSliceVideoModelInput,
 } from "./PreCallSetup";
 import { TranscriptThread } from "./TranscriptThread";
-import { fetchAvatarVariants, variantsForModels } from "./avatarVariant";
+import { cachedAvatarVariants, loadAvatarVariants } from "./avatarVariant";
 
 const NARROW_BELOW = 880;
-const AVATAR_VARIANT_PATH = "/api/lemonslice/avatar-variant";
 const MIC_BLOCKED_MESSAGE = "Microphone access was blocked. Allow it for your browser, then try again.";
 
 /** LiveKit rejects in-flight connect and mic publish when the visitor hangs up. */
@@ -91,9 +90,8 @@ export function LemonSliceCall({
   const [started, setStarted] = useState(false);
   const [startRequested, setStartRequested] = useState(false);
   const [voiceId, setVoiceId] = useState("");
-  const [variants, setVariants] = useState<Record<string, string> | null>(null);
-  const [prepareError, setPrepareError] = useState<string | null>(null);
   const [prepareAttempt, setPrepareAttempt] = useState(0);
+  const [prepareError, setPrepareError] = useState<string | null>(null);
   const modelOptions = resolveVideoModels(models);
   const [pickedModel, setVideoModel] = useState<LemonSliceVideoModel | null>(null);
   // A pick that is no longer offered falls back to the first row.
@@ -102,35 +100,31 @@ export function LemonSliceCall({
       ? pickedModel
       : modelOptions[0].value;
 
-  const variantKey = variantsForModels(modelOptions.map((option) => option.value)).join(",");
+  const modelIds = modelOptions.map((option) => option.value);
+  // undefined = lookup still running. An empty object = lookup finished with nothing cached.
+  const [variants, setVariants] = useState<Record<string, string> | undefined>(() =>
+    variantsOn && agentImageUrl ? cachedAvatarVariants(agentImageUrl, modelIds) : undefined,
+  );
   onEndedRef.current = onEnded;
 
   useEffect(() => {
-    if (!variantsOn || !agentImageUrl) return;
-    const needed = variantKey.split(",").filter(Boolean);
-    const controller = new AbortController();
-    setVariants(null);
-    setPrepareError(null);
-
-    (async () => {
-      const found = await fetchAvatarVariants(AVATAR_VARIANT_PATH, agentImageUrl, needed, false, controller.signal);
-      if (controller.signal.aborted) return;
-      const missing = needed.filter((id) => !found[id]);
-      if (missing.length === 0) {
-        setVariants(found);
-        return;
-      }
-      const created = await fetchAvatarVariants(AVATAR_VARIANT_PATH, agentImageUrl, missing, true, controller.signal);
-      if (controller.signal.aborted) return;
-      if (missing.some((id) => !created[id])) throw new Error("Could not prepare the avatar");
-      setVariants({ ...found, ...created });
-    })().catch((error: unknown) => {
-      if (controller.signal.aborted) return;
-      setPrepareError(error instanceof Error ? error.message : "Could not prepare the avatar");
-    });
-
-    return () => controller.abort();
-  }, [variantsOn, agentImageUrl, variantKey, prepareAttempt]);
+    if (!variantsOn || !agentImageUrl || cachedAvatarVariants(agentImageUrl, modelIds)) return;
+    let cancelled = false;
+    loadAvatarVariants(agentImageUrl, modelIds, (found) => {
+      if (!cancelled) setVariants(found);
+    })
+      .then((images) => {
+        if (!cancelled) setVariants(images);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setVariants((current) => current ?? {});
+        setPrepareError(error instanceof Error ? error.message : "Could not prepare the avatar");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [variantsOn, agentImageUrl, modelIds.join(","), prepareAttempt]);
 
   useEffect(() => {
     if (call.status !== "ended" && call.status !== "error") {
@@ -178,7 +172,9 @@ export function LemonSliceCall({
   };
 
   const preparedImage = variants?.[videoModel === "roleplay" ? "bust" : "portrait"];
-  const previewImage = preparedImage ?? agentImageUrl;
+  // Hold the original photo until the lookup answers, so a cached crop never swaps in after it.
+  const imagePending = variantsOn && variants === undefined;
+  const previewImage = preparedImage ?? (imagePending ? undefined : agentImageUrl);
   const preparing = startRequested && !preparedImage && !prepareError;
   const composer = <Composer disabled className={narrow ? "flex-1" : "w-full"} onSend={() => {}} />;
   const beginCall = (imageUrl: string | undefined) => {
@@ -252,6 +248,7 @@ export function LemonSliceCall({
               drift={drift}
               glint={glint}
               edgeFade={edgeFade}
+              pending={imagePending}
               overlay={
                 configuring ? (
                   preparing ? (

@@ -21,6 +21,8 @@ export type AvatarStageProps = {
   edgeFade?: boolean;
   /** Control drawn on top of the portrait, such as the pre-call start button. */
   overlay?: ReactNode;
+  /** Shimmer in the portrait while the first image is still loading. */
+  pending?: boolean;
   /** Seconds left before the call ends. Hidden when null. */
   idleSeconds?: number | null;
 };
@@ -35,6 +37,7 @@ export function AvatarStage({
   edgeFade = false,
   overlay = null,
   idleSeconds = null,
+  pending = false,
 }: AvatarStageProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const rigRef = useRef<HTMLDivElement>(null);
@@ -47,6 +50,7 @@ export function AvatarStage({
       <div ref={panelRef} className="ls-portrait">
         <div ref={rigRef} className="ls-rig">
           <PortraitMedia agentImageUrl={agentImageUrl} avatarTrack={avatarTrack} style={overscan} />
+          {!agentImageUrl && pending && <div className="ls-shimmer" aria-hidden />}
           {glint && <canvas ref={canvasRef} className="ls-glint" />}
         </div>
       </div>

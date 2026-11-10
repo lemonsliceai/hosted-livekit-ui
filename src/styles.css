@@ -238,6 +238,47 @@
   height: 100%;
 }
 
+.lemonslice-call .ls-shimmer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ls-video-fallback);
+}
+
+/* A soft band, symmetric top to bottom, that passes down the card. */
+.lemonslice-call .ls-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.45) 50%, transparent 100%);
+  animation: ls-shimmer 1.2s ease-in-out infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+  .lemonslice-call:not([data-theme="light"]) .ls-shimmer::after {
+    background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+  }
+}
+
+.lemonslice-call[data-theme="dark"] .ls-shimmer::after {
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+}
+
+@keyframes ls-shimmer {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lemonslice-call .ls-shimmer::after {
+    display: none;
+  }
+}
+
 .lemonslice-call .ls-fill {
   position: absolute;
   inset: 0;
