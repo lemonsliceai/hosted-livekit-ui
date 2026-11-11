@@ -5,13 +5,20 @@ export type CreateAvatarVariantHandlerOptions = {
   apiKey: string;
   /** LemonSlice rooms endpoint. The hosted cache route sits next to it. */
   lemonSliceUrl: string;
+  /** Avatar-variant cache endpoint. Defaults to `/hosted-avatar-variants` next to `/rooms` in `lemonSliceUrl`. */
+  avatarVariantUrl?: string;
   /** Optional auth gate run before the request is forwarded. */
   authorize?: (request: Request) => Promise<Response | void> | Response | void;
 };
 
 /** Forward the call UI to the hosted avatar-variant cache. The browser never sees the API key. */
-export function createAvatarVariantHandler({ apiKey, lemonSliceUrl, authorize }: CreateAvatarVariantHandlerOptions) {
-  const url = lemonSliceUrl.replace(/\/rooms\/?$/, "/hosted-avatar-variants");
+export function createAvatarVariantHandler({
+  apiKey,
+  lemonSliceUrl,
+  avatarVariantUrl,
+  authorize,
+}: CreateAvatarVariantHandlerOptions) {
+  const url = avatarVariantUrl || lemonSliceUrl.replace(/\/rooms\/?$/, "/hosted-avatar-variants");
   return async (request: Request) => {
     const body = await request.clone().json().catch(() => null);
     const rejection = await authorize?.(request);
@@ -29,7 +36,7 @@ export function createAvatarVariantHandler({ apiKey, lemonSliceUrl, authorize }:
         method: "POST",
         headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
         body: JSON.stringify({ image_url: imageUrl, variant_ids: variantIds, generate: body.generate === true }),
-        signal: AbortSignal.timeout(60_000),
+        signal: AbortSignal.timeout(180_000),
       });
       return new Response(upstream.body, { status: upstream.status, headers: { "Content-Type": "application/json" } });
     } catch (error) {
