@@ -18,7 +18,7 @@ Rules for the prompt:
 
 duration: 3 for a very simple gesture, 6.4 for one full beat, 10 for longer actions (dancing, moving around, changing outfits, complicated movements).
 event: 4-10 words, third person, present tense, starting with their name, or their pronoun if they have none; say "the camera" rather than "you", e.g. "She blows a kiss at the camera".
-audio: true only when sound is core to the action (dancing, drumming, clapping, singing). Never for talking; speech is never generated. Otherwise false.
+audio: always set to false, except when explicitly asked for sound.
 `;
 
 // Appended to every action description. Used to provide consistent guidance across all actions.
