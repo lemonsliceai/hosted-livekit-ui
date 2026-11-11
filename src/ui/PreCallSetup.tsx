@@ -40,7 +40,7 @@ export const VIDEO_MODEL_IDS = {
 /** One entry in the video model dropdown. */
 export type LemonSliceVideoModelOption = {
   model: LemonSliceVideoModel;
-  /** Shown in the dropdown. Defaults to Standard, Premium, or Roleplay. */
+  /** Shown in the dropdown. Defaults to FaceTime Lite, FaceTime, or Roleplay. */
   label?: string;
   /** Subtitle under the label, like the voice descriptions. */
   description?: string;
@@ -50,8 +50,8 @@ export type LemonSliceVideoModelOption = {
 export type LemonSliceVideoModelInput = LemonSliceVideoModel | LemonSliceVideoModelOption;
 
 const MODEL_LABELS: Record<LemonSliceVideoModel, string> = {
-  standard: "Standard",
-  premium: "Premium",
+  standard: "FaceTime Lite",
+  premium: "FaceTime",
   roleplay: "Roleplay",
 };
 

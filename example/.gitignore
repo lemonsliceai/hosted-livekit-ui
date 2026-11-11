@@ -12,3 +12,9 @@ npm-debug.log*
 # Using pnpm; other lockfiles would shadow pnpm-lock.yaml
 package-lock.json
 yarn.lock
+
+# Local character configs (copy one into call-config.ts)
+characters/
+
+# Call logs from the example app
+logs/

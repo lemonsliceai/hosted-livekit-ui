@@ -2,7 +2,7 @@
 
 import { LemonSliceCall } from "@lemonslice/hosted-call";
 import { useState } from "react";
-import { AGENT_IMAGE_URL, VOICE_ID } from "../agent";
+import { AGENT_IMAGE_URL, VOICE_ID } from "../call-config";
 
 export default function Home() {
   const [open, setOpen] = useState(false);
@@ -15,8 +15,9 @@ export default function Home() {
             startCallUrl="/api/lemonslice/start-call"
             agentImageUrl={AGENT_IMAGE_URL}
             suggestedVoiceId={VOICE_ID}
-            // Dropdown order; the first row is selected by default. Leave this prop
-            // off to offer Standard and Premium only. Roleplay has to be listed.
+            // Dropdown order; the first row is selected by default. The ids stay
+            // "premium" and "standard"; the ui displays them as FaceTime and
+            // FaceTime Lite.  Roleplay has to be listed here to be shown as an option.
             models={["roleplay", "premium", "standard"]}
             theme="dark"
           />
