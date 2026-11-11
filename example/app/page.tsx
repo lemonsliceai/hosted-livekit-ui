@@ -18,6 +18,7 @@ export default function Home() {
             // Dropdown order; the first row is selected by default. The ids stay
             // "premium" and "standard"; the ui displays them as FaceTime and
             // FaceTime Lite.  Roleplay has to be listed here to be shown as an option.
+            // For a subtitle, use { model: "roleplay", description: "..." } instead.
             models={["roleplay", "premium", "standard"]}
             theme="dark"
           />

@@ -18,6 +18,7 @@ import {
   type LemonSliceVideoModelInput,
 } from "./PreCallSetup";
 import { TranscriptThread } from "./TranscriptThread";
+import { cachedAvatarVariants, loadAvatarVariants } from "./avatarVariant";
 
 const NARROW_BELOW = 880;
 const MIC_BLOCKED_MESSAGE = "Microphone access was blocked. Allow it for your browser, then try again.";
@@ -58,6 +59,12 @@ export type LemonSliceCallProps = {
   edgeFade?: boolean;
   /** Called whenever the call ends */
   onEnded?: () => void;
+  /**
+   * Crops prepare in the background through `/api/lemonslice/avatar-variant`. A base model uses
+   * the portrait crop and roleplay uses the bust crop. The preparing pill shows after
+   * Start, and only when that crop is not ready yet. Set false to skip crop prep.
+   */
+  avatarVariants?: boolean;
   className?: string;
 };
 
@@ -71,15 +78,20 @@ export function LemonSliceCall({
   glint = false,
   edgeFade = false,
   onEnded,
+  avatarVariants = true,
   className,
 }: LemonSliceCallProps) {
+  const variantsOn = Boolean(avatarVariants && agentImageUrl);
   const call = useLemonSliceCall({ startCallUrl });
   const rootRef = useRef<HTMLDivElement>(null);
   const onEndedRef = useRef(onEnded);
   const [narrow, setNarrow] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [started, setStarted] = useState(false);
+  const [startRequested, setStartRequested] = useState(false);
   const [voiceId, setVoiceId] = useState("");
+  const [prepareAttempt, setPrepareAttempt] = useState(0);
+  const [prepareError, setPrepareError] = useState<string | null>(null);
   const modelOptions = resolveVideoModels(models);
   const [pickedModel, setVideoModel] = useState<LemonSliceVideoModel | null>(null);
   // A pick that is no longer offered falls back to the first row.
@@ -88,13 +100,45 @@ export function LemonSliceCall({
       ? pickedModel
       : modelOptions[0].value;
 
+  const modelIds = modelOptions.map((option) => option.value);
+  const cached = variantsOn && agentImageUrl ? cachedAvatarVariants(agentImageUrl, modelIds) : undefined;
+  // undefined = lookup still running. An empty object = lookup finished with nothing cached.
+  const [variants, setVariants] = useState<Record<string, string> | undefined>(cached);
+  const [variantImage, setVariantImage] = useState(agentImageUrl);
+  // Crops belong to one photo. Drop them in this render when the photo changes, before paint.
+  if (variantImage !== agentImageUrl) {
+    setVariantImage(agentImageUrl);
+    setVariants(cached);
+    setPrepareError(null);
+  }
   onEndedRef.current = onEnded;
+
+  useEffect(() => {
+    if (!variantsOn || !agentImageUrl || cached) return;
+    let cancelled = false;
+    setPrepareError(null);
+    loadAvatarVariants(agentImageUrl, modelIds, (found) => {
+      if (!cancelled) setVariants(found);
+    })
+      .then((images) => {
+        if (!cancelled) setVariants(images);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setVariants((current) => current ?? {});
+        setPrepareError(error instanceof Error ? error.message : "Could not prepare the avatar");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [variantsOn, agentImageUrl, modelIds.join(","), prepareAttempt]);
 
   useEffect(() => {
     if (call.status !== "ended" && call.status !== "error") {
       return;
     }
     setStarted(false);
+    setStartRequested(false);
     onEndedRef.current?.();
   }, [call.status]);
 
@@ -116,6 +160,7 @@ export function LemonSliceCall({
   const end = () => {
     setTranscriptOpen(false);
     setStarted(false);
+    setStartRequested(false);
     call.end();
   };
 
@@ -133,15 +178,41 @@ export function LemonSliceCall({
     call.onError(error);
   };
 
+  const preparedImage = variants?.[videoModel === "roleplay" ? "bust" : "portrait"];
+  // Hold the original photo until the lookup answers, so a cached crop never swaps in after it.
+  const imagePending = variantsOn && variants === undefined;
+  const previewImage = preparedImage ?? (imagePending ? undefined : agentImageUrl);
+  const preparing = startRequested && !preparedImage && !prepareError;
   const composer = <Composer disabled className={narrow ? "flex-1" : "w-full"} onSend={() => {}} />;
-  const start = () => {
+  const beginCall = (imageUrl: string | undefined) => {
+    setStartRequested(false);
     setStarted(true);
     setTranscriptOpen(false);
     call.start({
       ...(voiceId ? { voiceId } : {}),
       model: VIDEO_MODEL_IDS[videoModel],
+      ...(imageUrl ? { agentImageUrl: imageUrl } : {}),
     });
   };
+  const start = () => {
+    if (!variantsOn || preparedImage) {
+      beginCall(preparedImage);
+      return;
+    }
+    setStartRequested(true);
+    if (prepareError) setPrepareAttempt((attempt) => attempt + 1);
+  };
+
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!startRequested) {
+      launchedRef.current = false;
+      return;
+    }
+    if (!preparedImage || launchedRef.current) return;
+    launchedRef.current = true;
+    beginCall(preparedImage);
+  }, [startRequested, preparedImage]);
 
   return (
     <div
@@ -161,7 +232,7 @@ export function LemonSliceCall({
           className="flex h-full min-h-0 w-full"
         >
           <CallPanel
-            agentImageUrl={agentImageUrl}
+            agentImageUrl={previewImage}
             narrow={narrow}
             transcriptOpen={transcriptOpen}
             onToggleTranscript={() => setTranscriptOpen((open) => !open)}
@@ -175,19 +246,31 @@ export function LemonSliceCall({
         </LiveKitRoom>
       ) : (
         <CallLayout
-          agentImageUrl={agentImageUrl}
+          agentImageUrl={previewImage}
           narrow={narrow}
           transcriptOpen={showTranscript}
           portrait={
             <AvatarStage
-              agentImageUrl={agentImageUrl}
+              agentImageUrl={previewImage}
               calling={calling}
               drift={drift}
               glint={glint}
               edgeFade={edgeFade}
+              pending={imagePending}
               overlay={
                 configuring ? (
-                  <PreCallStartButton errorMessage={call.errorMessage} onStart={start} />
+                  preparing ? (
+                    <div className="ls-preparing" role="status">
+                      <span className="ls-preparing-fill" />
+                      <span className="ls-preparing-label">Preparing avatar</span>
+                    </div>
+                  ) : startRequested && prepareError ? (
+                    <button type="button" className="ls-precall-start" onClick={() => setPrepareAttempt((attempt) => attempt + 1)}>
+                      Try again
+                    </button>
+                  ) : (
+                    <PreCallStartButton errorMessage={call.errorMessage} onStart={start} />
+                  )
                 ) : null
               }
             />
@@ -199,7 +282,7 @@ export function LemonSliceCall({
                 suggestedVoiceId={suggestedVoiceId}
                 model={videoModel}
                 modelOptions={modelOptions}
-                errorMessage={call.errorMessage}
+                errorMessage={(startRequested ? prepareError : null) ?? call.errorMessage}
                 onVoiceChange={setVoiceId}
                 onModelChange={setVideoModel}
               />
