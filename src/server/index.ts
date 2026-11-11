@@ -1,5 +1,7 @@
 // Avoid editing
 
+import { httpsImageUrl } from "./https-image-url";
+
 /**
  * Early-access prompt overrides. Only read for models LemonSlice has enabled on
  * your account; ask us for the guide before setting these. Each field is optional
@@ -162,17 +164,6 @@ export function createRoomHandler({
     const { room_url, token, session_id } = payload as Record<string, unknown>;
     return Response.json({ room_url, token, session_id }, { status: upstream.status });
   };
-}
-
-function httpsImageUrl(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const imageUrl = value.trim();
-  if (!imageUrl || imageUrl.length > 2048) return null;
-  try {
-    return new URL(imageUrl).protocol === "https:" ? imageUrl : null;
-  } catch {
-    return null;
-  }
 }
 
 export { createAvatarVariantHandler, type CreateAvatarVariantHandlerOptions } from "./avatar-variant";

@@ -116,6 +116,7 @@ export function LemonSliceCall({
   useEffect(() => {
     if (!variantsOn || !agentImageUrl || cached) return;
     let cancelled = false;
+    setPrepareError(null);
     loadAvatarVariants(agentImageUrl, modelIds, (found) => {
       if (!cancelled) setVariants(found);
     })
