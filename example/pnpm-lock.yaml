@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@lemonslice/hosted-call':
         specifier: file:..
-        version: file:..(@types/dom-mediacapture-record@1.0.22)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tslib@2.8.1)
+        version: '@lemonslice/hosted-lemonslice-call@file:..(@types/dom-mediacapture-record@1.0.22)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tslib@2.8.1)'
       next:
         specifier: ^15.5.4
         version: 15.5.27(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -197,7 +197,7 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@lemonslice/hosted-call@file:..':
+  '@lemonslice/hosted-lemonslice-call@file:..':
     resolution: {directory: .., type: directory}
     peerDependencies:
       react: '>=18'
@@ -578,7 +578,7 @@ snapshots:
   '@img/sharp-win32-x64@0.35.5':
     optional: true
 
-  '@lemonslice/hosted-call@file:..(@types/dom-mediacapture-record@1.0.22)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tslib@2.8.1)':
+  '@lemonslice/hosted-lemonslice-call@file:..(@types/dom-mediacapture-record@1.0.22)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tslib@2.8.1)':
     dependencies:
       '@livekit/components-react': 2.9.24(livekit-client@2.22.4(@types/dom-mediacapture-record@1.0.22))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(tslib@2.8.1)
       livekit-client: 2.22.4(@types/dom-mediacapture-record@1.0.22)
