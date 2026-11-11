@@ -22,8 +22,7 @@ Open <http://localhost:3001> and click **Video call**. The call connects as soon
 
 ## Session config
 
-Every option for the call is a constant in `agent.ts`: the image, voice, prompt, and the
-three Roleplay prompt overrides. Edit it, or replace the file with one someone sent you.
+Session constants can be customized in `agent.ts`.
 An empty override keeps the backend's default.
 
 ## After changing the component
