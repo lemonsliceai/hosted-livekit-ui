@@ -2,6 +2,8 @@
 
 A React component that puts a talking LemonSlice avatar on your site.
 
+This repo exposes both the Roleplay and FaceTime experiences.
+
 ```
 <LemonSliceCall>  ──▶  your /start-call route  ──▶  LemonSlice
 ```
@@ -25,6 +27,8 @@ pnpm dev
 Open <http://localhost:3001> and play with your UI.
 
 `example/` is a demo app. It stays in this repo but is never installed into your app.
+
+To customize the roleplay experience, update the default prompts in `example/call-config.ts`. These are used to trigger and describe actions. Look at `example/call-config-examples.ts` for example prompts.
 
 ## 2. Install it into your app
 
@@ -148,7 +152,8 @@ LEMONSLICE_API_KEY=sk_lemon_...
 LEMONSLICE_API_URL=https://lemonslice.com/api/liveai/rooms
 
 # Optional. Points the room at a specific LiveKit agent.
-# LEMONSLICE_LIVEKIT_AGENT_NAME=lemonslice-hosted-agent-dev
+# Only needed for custom agent deploys.
+# LEMONSLICE_LIVEKIT_AGENT_NAME=lemonslice-hosted-agent
 ```
 
 ## 4. Add the start-call endpoint on your backend server
@@ -171,9 +176,17 @@ export const POST = createRoomHandler({
   livekitAgentNameOverride: process.env.LEMONSLICE_LIVEKIT_AGENT_NAME,
 
   room: {
-    prompt: "You are a friendly product guide. Keep answers to one or two sentences.",
-    voiceId: "b545c585f631496c914815291da4e893",
+    prompt: "You are June, a small-town baker who moved to the city after calling off your wedding.",
+    voiceId: "0984f8581bbb4e5e980a990abb865874",
     agentImageUrl: "https://cdn.example.com/avatar.png",
+
+    // Roleplay only. Empty keeps the backend's default prompt.
+    // See example/call-config-examples.ts for example prompts.
+    agentOverrides: {
+      actionDetectorPrompt: "",
+      directorPrompt: "",
+      actionDescriptionSuffix: "",
+    },
   },
 
   // Calls bill to your account — only let your own users start one.
@@ -199,6 +212,7 @@ room: async (request) => {
 | `voiceId` | Fish Audio voice ID. |
 | `agentImageUrl` | Public `https://` image of the avatar. |
 | `webhookUrl` | Optional. Overrides the handler's `webhookUrl` for this visitor. |
+| `agentOverrides` | Optional, Roleplay only. `actionDetectorPrompt`, `directorPrompt`, and `actionDescriptionSuffix`, each up to 40,000 characters. An empty string keeps the backend's default. |
 
 If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses
 that Fish Audio voice instead of the configured `voiceId`. Choosing **Suggested**
@@ -251,7 +265,7 @@ end the call right away — useful for cutting a visitor off at your own credit 
 
 ## 5. Import the styles
 
-Add one line to your root layout (usually **`app/layout.tsx`**):
+Add one line to your root layout (usually `app/layout.tsx`):
 
 ```tsx
 // app/layout.tsx
@@ -264,11 +278,11 @@ site — with or without Tailwind in your app.
 ## 6. Render it
 
 `<LemonSliceCall>` opens with a pre-call screen. The visitor can choose a voice
-and video model, then start the session with **Start call**. **Standard** uses
-`cwm-1-lite`; **Premium** uses `cwm-1`. Hanging up ends the session, returns to
-that screen, and calls `onEnded`.
+and video model, then start the session with **Start call**. **FaceTime Lite** uses
+`cwm-1-lite`; **FaceTime** uses `cwm-1`; **Roleplay** adds on-camera actions. Hanging
+up ends the session, returns to that screen, and calls `onEnded`.
 
-Without a `models` prop the dropdown offers Standard and Premium, Standard first.
+Without a `models` prop the dropdown offers FaceTime Lite and FaceTime.
 Pass `models` to pick the order, the default (first in the list), and a subtitle
 for each row.
 
@@ -277,13 +291,14 @@ for each row.
   startCallUrl="/api/lemonslice/start-call"
   agentImageUrl="https://cdn.example.com/avatar.png"
   models={[
+    "roleplay",
     { model: "premium", description: "Sharper video" },
     "standard",
   ]}
 />
 ```
 
-Each entry is an id (`"standard"` or `"premium"`) or `{ model, label?, description? }`.
+Each entry is an id (`"roleplay"`, `"premium"`, or `"standard"`) or `{ model, label?, description? }`.
 Keep descriptions to a few words; the menu is narrow and clips the rest. Repeats and
 unknown ids are dropped. A single entry hides the dropdown.
 
