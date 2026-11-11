@@ -241,6 +241,7 @@ export function LemonSliceCall({
             drift={drift}
             glint={glint}
             edgeFade={edgeFade}
+            sessionId={call.connection.sessionId}
           />
         </LiveKitRoom>
       ) : (

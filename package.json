@@ -1,6 +1,6 @@
 {
-  "name": "@lemonslice/hosted-call",
-  "version": "0.2.0",
+  "name": "@lemonslice/hosted-lemonslice-call",
+  "version": "0.3.0",
   "description": "Embeddable LemonSlice talking-avatar call UI for React apps",
   "license": "UNLICENSED",
   "type": "module",

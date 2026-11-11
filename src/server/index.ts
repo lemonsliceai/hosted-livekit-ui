@@ -8,9 +8,9 @@ import { httpsImageUrl } from "./https-image-url";
  * and capped at 40,000 characters. Omit one to keep its default.
  */
 export type AgentOverrides = {
-  jevPrompt?: string;
+  actionDetectorPrompt?: string;
   directorPrompt?: string;
-  directorSuffix?: string;
+  actionDescriptionSuffix?: string;
 };
 
 export type AvatarConfig = {
@@ -29,9 +29,9 @@ export type AvatarConfig = {
 const MAX_OVERRIDE_LENGTH = 40000;
 
 const OVERRIDE_FIELDS = [
-  ["jevPrompt", "jev_prompt"],
+  ["actionDetectorPrompt", "action_detector_prompt"],
   ["directorPrompt", "director_prompt"],
-  ["directorSuffix", "director_suffix"],
+  ["actionDescriptionSuffix", "action_description_suffix"],
 ] as const;
 
 function agentOverridesBody(
