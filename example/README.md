@@ -20,6 +20,12 @@ Open <http://localhost:3001> and click **Video call**. The call connects as soon
 > Run `pnpm i` in the repo root first. This app depends on the package via `file:..`, so
 > the package has to be built before the app can use it.
 
+## Session config
+
+Every option for the call is a constant in `agent.ts`: the image, voice, prompt, and the
+three Roleplay prompt overrides. Edit it, or replace the file with one someone sent you.
+An empty override keeps the backend's default.
+
 ## After changing the component
 
 ```bash

@@ -15,6 +15,9 @@ export default function Home() {
             startCallUrl="/api/lemonslice/start-call"
             agentImageUrl={AGENT_IMAGE_URL}
             suggestedVoiceId={VOICE_ID}
+            // Dropdown order; the first row is selected by default. Leave this prop
+            // off to offer Standard and Premium only. Roleplay has to be listed.
+            models={["roleplay", "premium", "standard"]}
             theme="dark"
           />
           <button type="button" className="close" onClick={() => setOpen(false)} aria-label="Close">
