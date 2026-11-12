@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 
-/** A pill on the video; a string is `{ label }`. Tapped during another action, it is answered, not performed. */
+/** A pill on the video; a string is `{ label }`. */
 export type Suggestion = string | SuggestionPill;
 
 export type SuggestionPill = {
@@ -16,7 +16,7 @@ export type SuggestionPill = {
   prompt?: string;
 };
 
-/** The sending sweep on a tapped pill; an action pill leaves when it ends. */
+/** The sending sweep on a tapped pill; the action pill is removed when it ends. */
 const BUSY_MS = 2000;
 /** After a tap, every pill is disabled this long. */
 const LOCK_MS = 15000;
@@ -29,6 +29,9 @@ export function toPill(item: Suggestion): SuggestionPill {
   return typeof item === "string" ? { label: item } : item;
 }
 
+/** Tells pills apart, including an action and a scene pill with the same label. */
+const pillId = (pill: SuggestionPill) => `${pill.label}\0${pill.image ?? ""}`;
+
 export function SuggestionChips({
   pills,
   onSelect,
@@ -36,7 +39,7 @@ export function SuggestionChips({
   pills: readonly SuggestionPill[];
   onSelect: (pill: SuggestionPill) => void;
 }) {
-  const [busy, setBusy] = useState<{ label: string; leaves: boolean } | null>(null);
+  const [busy, setBusy] = useState<{ id: string; leaves: boolean } | null>(null);
   const [used, setUsed] = useState<readonly string[]>([]);
   const [locked, setLocked] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -44,9 +47,9 @@ export function SuggestionChips({
 
   useEffect(() => {
     if (busy == null) return;
-    const { label, leaves } = busy;
+    const { id, leaves } = busy;
     const timer = setTimeout(() => {
-      if (leaves) setUsed((current) => [...current, label]);
+      if (leaves) setUsed((current) => [...current, id]);
       setBusy(null);
     }, BUSY_MS);
     return () => clearTimeout(timer);
@@ -59,8 +62,8 @@ export function SuggestionChips({
   }, [locked]);
 
   // Used action pills are gone for the call. Scene pills stay; the current image's pill is hidden upstream.
-  const shown = pills.filter((pill) => !used.includes(pill.label));
-  const layoutKey = shown.map((pill) => `${pill.label}\0${pill.image ?? ""}`).join("\n");
+  const shown = pills.filter((pill) => !used.includes(pillId(pill)));
+  const layoutKey = shown.map(pillId).join("\n");
 
   useLayoutEffect(() => {
     const row = scroller.current;
@@ -95,17 +98,18 @@ export function SuggestionChips({
         }}
       >
         {shown.map((pill) => {
-          const isBusy = busy?.label === pill.label;
+          const id = pillId(pill);
+          const isBusy = busy?.id === id;
           return (
             <button
-              key={pill.label}
+              key={id}
               type="button"
               className="ls-suggestion"
               data-sending={isBusy ? (busy.leaves ? "leave" : "stay") : undefined}
               disabled={locked}
               onClick={() => {
                 setLocked(true);
-                setBusy({ label: pill.label, leaves: !pill.image });
+                setBusy({ id, leaves: !pill.image });
                 onSelect(pill);
               }}
             >
