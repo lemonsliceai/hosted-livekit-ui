@@ -60,7 +60,7 @@ export type LemonSliceCallProps = {
   edgeFade?: boolean;
   /**
    * Prompts drawn on the video once it is live. They leave when the visitor
-   * sends one, types a message, or speaks. Shown only for the Roleplay model.
+   * sends a message or speaks. Shown only for the Roleplay model.
    * Defaults to the built-in prompts. Pass `false` to hide them.
    */
   suggestions?: readonly string[] | false;

@@ -56,8 +56,8 @@ export function CallPanel({
   }, [visitorSpoke]);
 
   const send = async (text: string) => {
-    setSuggestionsOpen(false);
     await transcript.send(text);
+    setSuggestionsOpen(false);
   };
 
   useEffect(() => {
