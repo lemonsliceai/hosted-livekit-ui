@@ -71,7 +71,7 @@ export function CallPanel({
   const transcript = useTranscript(sessionId);
   const idleSeconds = useIdleCountdown(onEnd);
   const caption = useSpokenCaption(transcript.messages, !transcriptOpen);
-  const sceneImage = useSceneImage(room, portraitImage);
+  const sceneImage = useSceneImage(room, portraitImage, sessionId);
   // A pill with `turns` leaves after that many visitor messages (spoken, typed, or a tapped
   // pill). The pill for the image she is on is hidden.
   const visitorTurns = transcript.messages.filter((message) => message.role === "user" && message.text.trim()).length;
@@ -172,12 +172,12 @@ export function CallPanel({
 }
 
 /** The image she is on: the call's first one, then each finished scene clip's end frame. */
-function useSceneImage(room: Room, initial: string | undefined) {
+function useSceneImage(room: Room, initial: string | undefined, sessionId: string | null) {
   const [image, setImage] = useState(initial);
 
   useEffect(() => {
     setImage(initial);
-  }, [initial]);
+  }, [initial, sessionId]);
 
   useEffect(() => {
     const onData = (payload: Uint8Array, _participant: Participant | undefined, _kind: unknown, topic?: string) => {
@@ -208,7 +208,12 @@ function useSpokenCaption(messages: TranscriptMessage[], enabled: boolean) {
   const [caption, setCaption] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!text) return;
+    if (!text) {
+      // The thread was cleared for a new call.
+      seen.current = null;
+      setCaption(null);
+      return;
+    }
     if (!enabled) {
       seen.current = text;
       setCaption(null);
