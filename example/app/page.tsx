@@ -21,6 +21,13 @@ export default function Home() {
             // For a subtitle, use { model: "roleplay", description: "..." } instead.
             models={["roleplay", "premium", "standard"]}
             theme="dark"
+            // UI effects.
+            // drift: subtle movement of the video frame.
+            // drift={true}
+            // glint: subbtle shimmer on the video. 
+            // glint={true}
+            // edgeFade: subtle fade at the edges of the video frame. 
+            // edgeFade={true}
           />
           <button type="button" className="close" onClick={() => setOpen(false)} aria-label="Close">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="20" height="20" aria-hidden>
