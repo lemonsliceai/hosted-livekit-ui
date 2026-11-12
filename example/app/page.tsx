@@ -2,7 +2,7 @@
 
 import { LemonSliceCall } from "@lemonslice/hosted-call";
 import { useState } from "react";
-import { AGENT_IMAGE_URL, VOICE_ID } from "../agent";
+import { AGENT_IMAGE_URL, SUGGESTIONS, VOICE_ID } from "../call-config";
 
 export default function Home() {
   const [open, setOpen] = useState(false);
@@ -15,10 +15,21 @@ export default function Home() {
             startCallUrl="/api/lemonslice/start-call"
             agentImageUrl={AGENT_IMAGE_URL}
             suggestedVoiceId={VOICE_ID}
-            // Dropdown order; the first row is selected by default. Leave this prop
-            // off to offer Standard and Premium only. Roleplay has to be listed.
+            // Dropdown order; the first row is selected by default. The ids stay
+            // "premium" and "standard"; the ui displays them as FaceTime and
+            // FaceTime Lite.  Roleplay has to be listed here to be shown as an option.
+            // For a subtitle, use { model: "roleplay", description: "..." } instead.
             models={["roleplay", "premium", "standard"]}
             theme="dark"
+            // UI effects.
+            // drift: subtle movement of the video frame.
+            // drift={true}
+            // glint: subtle shimmer on the video.
+            // glint={true}
+            // edgeFade: subtle fade at the edges of the video frame.
+            // edgeFade={true}
+            // Pills on the video, set in call-config.ts.
+            suggestions={SUGGESTIONS}
           />
           <button type="button" className="close" onClick={() => setOpen(false)} aria-label="Close">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="20" height="20" aria-hidden>

@@ -1,14 +1,16 @@
 // Avoid editing
 
+import { httpsImageUrl } from "./https-image-url";
+
 /**
  * Early-access prompt overrides. Only read for models LemonSlice has enabled on
  * your account; ask us for the guide before setting these. Each field is optional
  * and capped at 40,000 characters. Omit one to keep its default.
  */
 export type AgentOverrides = {
-  jevPrompt?: string;
+  actionDetectorPrompt?: string;
   directorPrompt?: string;
-  directorSuffix?: string;
+  actionDescriptionSuffix?: string;
 };
 
 export type AvatarConfig = {
@@ -27,9 +29,9 @@ export type AvatarConfig = {
 const MAX_OVERRIDE_LENGTH = 40000;
 
 const OVERRIDE_FIELDS = [
-  ["jevPrompt", "jev_prompt"],
+  ["actionDetectorPrompt", "action_detector_prompt"],
   ["directorPrompt", "director_prompt"],
-  ["directorSuffix", "director_suffix"],
+  ["actionDescriptionSuffix", "action_description_suffix"],
 ] as const;
 
 function agentOverridesBody(
@@ -102,6 +104,7 @@ export function createRoomHandler({
       supports_vp9?: unknown;
       voice_id?: unknown;
       model?: unknown;
+      agent_image_url?: unknown;
     };
     const supportsVp9 = browser?.supports_vp9 === true;
     const requestedVoiceId =
@@ -110,6 +113,7 @@ export function createRoomHandler({
         : null;
     const requestedModel =
       typeof browser?.model === "string" && browser.model.trim() ? browser.model.trim() : null;
+    const requestedImageUrl = httpsImageUrl(browser?.agent_image_url);
 
     if (authorize) {
       const rejection = await authorize(request);
@@ -139,7 +143,7 @@ export function createRoomHandler({
           transport_type: "livekit",
           prompt,
           voice_id: voiceId,
-          agent_image_url: agentImageUrl,
+          agent_image_url: requestedImageUrl ?? agentImageUrl,
           supports_vp9: supportsVp9,
           ...(requestedModel ? { model: requestedModel } : {}),
           ...(sessionWebhookUrl ? { webhook_url: sessionWebhookUrl } : {}),
@@ -161,3 +165,5 @@ export function createRoomHandler({
     return Response.json({ room_url, token, session_id }, { status: upstream.status });
   };
 }
+
+export { createAvatarVariantHandler, type CreateAvatarVariantHandlerOptions } from "./avatar-variant";
