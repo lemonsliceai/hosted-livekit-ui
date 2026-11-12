@@ -250,7 +250,7 @@ export function LemonSliceCall({
             glint={glint}
             edgeFade={edgeFade}
             sessionId={call.connection.sessionId}
-            suggestions={videoModel === "roleplay" ? suggestions : []}
+            suggestions={videoModel === "roleplay" && Array.isArray(suggestions) ? suggestions : []}
             portraitImage={agentImageUrl}
           />
         </LiveKitRoom>
