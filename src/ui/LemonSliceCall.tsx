@@ -3,9 +3,7 @@
 import { LiveKitRoom } from "@livekit/components-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLemonSliceCall } from "../core/useLemonSliceCall";
-import { AvatarStage } from "./AvatarStage";
 import { CallControlsBar } from "./CallControlsBar";
-import { CallLayout } from "./CallLayout";
 import { CallPanel } from "./CallPanel";
 import { Composer } from "./Composer";
 import type { Suggestion } from "./SuggestionChips";
@@ -18,7 +16,6 @@ import {
   type LemonSliceVideoModel,
   type LemonSliceVideoModelInput,
 } from "./PreCallSetup";
-import { TranscriptThread } from "./TranscriptThread";
 import { cachedAvatarVariants, loadAvatarVariants } from "./avatarVariant";
 
 const NARROW_BELOW = 880;
@@ -231,99 +228,79 @@ export function LemonSliceCall({
       data-theme={theme === "system" ? undefined : theme}
       className={["lemonslice-call", className ?? ""].filter(Boolean).join(" ")}
     >
-      {call.connection ? (
-        <LiveKitRoom
-          token={call.connection.token}
-          serverUrl={call.connection.serverUrl}
-          connect
-          audio
-          video={false}
-          onDisconnected={end}
-          onError={onRoomError}
-          className="flex h-full min-h-0 w-full"
-        >
-          <CallPanel
-            agentImageUrl={previewImage}
-            narrow={narrow}
-            transcriptOpen={transcriptOpen}
-            onToggleTranscript={() => setTranscriptOpen((open) => !open)}
-            onAvatarReady={call.markLive}
-            onEnd={hangUp}
-            drift={drift}
-            glint={glint}
-            edgeFade={edgeFade}
-            captions={captions}
-            sessionId={call.connection.sessionId}
-            suggestions={videoModel === "roleplay" && Array.isArray(suggestions) ? suggestions : []}
-            portraitImage={agentImageUrl}
-          />
-        </LiveKitRoom>
-      ) : (
-        <CallLayout
+      <LiveKitRoom
+        token={call.connection?.token}
+        serverUrl={call.connection?.serverUrl}
+        connect={call.connection !== null}
+        audio
+        video={false}
+        onDisconnected={() => {
+          if (call.connection) end();
+        }}
+        onError={onRoomError}
+        className="flex h-full min-h-0 w-full"
+      >
+        <CallPanel
           agentImageUrl={previewImage}
           narrow={narrow}
           transcriptOpen={showTranscript}
-          portrait={
-            <AvatarStage
-              agentImageUrl={previewImage}
-              calling={calling}
-              drift={drift}
-              glint={glint}
-              edgeFade={edgeFade}
-              pending={imagePending}
-              overlay={
-                configuring ? (
-                  preparing ? (
-                    <div className="ls-preparing" role="status">
-                      <span className="ls-preparing-fill" />
-                      <span className="ls-preparing-label">Preparing avatar</span>
-                    </div>
-                  ) : startRequested && prepareError ? (
-                    <button type="button" className="ls-precall-start" onClick={() => setPrepareAttempt((attempt) => attempt + 1)}>
-                      Try again
-                    </button>
-                  ) : (
-                    <PreCallStartButton errorMessage={call.errorMessage} onStart={start} />
-                  )
-                ) : null
-              }
-            />
+          onToggleTranscript={() => setTranscriptOpen((open) => !open)}
+          onAvatarReady={call.markLive}
+          onEnd={hangUp}
+          drift={drift}
+          glint={glint}
+          edgeFade={edgeFade}
+          captions={captions}
+          sessionId={call.connection?.sessionId ?? null}
+          suggestions={videoModel === "roleplay" && Array.isArray(suggestions) ? suggestions : []}
+          portraitImage={agentImageUrl}
+          preCall={
+            call.connection
+              ? undefined
+              : {
+                  calling,
+                  pending: imagePending,
+                  overlay: configuring ? (
+                    preparing ? (
+                      <div className="ls-preparing" role="status">
+                        <span className="ls-preparing-fill" />
+                        <span className="ls-preparing-label">Preparing avatar</span>
+                      </div>
+                    ) : startRequested && prepareError ? (
+                      <button type="button" className="ls-precall-start" onClick={() => setPrepareAttempt((attempt) => attempt + 1)}>
+                        Try again
+                      </button>
+                    ) : (
+                      <PreCallStartButton errorMessage={call.errorMessage} onStart={start} />
+                    )
+                  ) : null,
+                  toolbar: configuring ? (
+                    <PreCallSetup
+                      voiceId={voiceId}
+                      suggestedVoiceId={suggestedVoiceId}
+                      model={videoModel}
+                      modelOptions={modelOptions}
+                      errorMessage={(startRequested ? prepareError : null) ?? call.errorMessage}
+                      onVoiceChange={setVoiceId}
+                      onModelChange={setVideoModel}
+                    />
+                  ) : calling ? (
+                    <CallControlsBar
+                      compact={narrow && showTranscript}
+                      micEnabled={false}
+                      micDisabled
+                      muted
+                      onToggleMic={() => {}}
+                      onHangUp={hangUp}
+                      transcriptOpen={transcriptOpen}
+                      onToggleTranscript={() => setTranscriptOpen((open) => !open)}
+                      composer={narrow && showTranscript ? composer : undefined}
+                    />
+                  ) : null,
+                }
           }
-          toolbar={
-            configuring ? (
-              <PreCallSetup
-                voiceId={voiceId}
-                suggestedVoiceId={suggestedVoiceId}
-                model={videoModel}
-                modelOptions={modelOptions}
-                errorMessage={(startRequested ? prepareError : null) ?? call.errorMessage}
-                onVoiceChange={setVoiceId}
-                onModelChange={setVideoModel}
-              />
-            ) : calling ? (
-              <CallControlsBar
-                compact={narrow && showTranscript}
-                micEnabled={false}
-                micDisabled
-                muted
-                onToggleMic={() => {}}
-                onHangUp={hangUp}
-                transcriptOpen={transcriptOpen}
-                onToggleTranscript={() => setTranscriptOpen((open) => !open)}
-                composer={narrow && showTranscript ? composer : undefined}
-              />
-            ) : null
-          }
-          messages={
-            <TranscriptThread
-              messages={[]}
-              fade={narrow}
-              className={narrow ? "px-1 pb-4 pt-6" : "px-8 pb-6 pt-8"}
-            />
-          }
-          composer={composer}
         />
-      )}
+      </LiveKitRoom>
     </div>
   );
 }

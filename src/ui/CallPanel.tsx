@@ -2,7 +2,7 @@
 
 import { RoomAudioRenderer, useRoomContext, useTrackToggle } from "@livekit/components-react";
 import { RoomEvent, Track, type Participant, type Room } from "livekit-client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAvatarVideo } from "../core/useAvatarVideo";
 import { CallControlsBar } from "./CallControlsBar";
 import { CallLayout } from "./CallLayout";
@@ -35,6 +35,19 @@ export type CallPanelProps = {
   suggestions?: readonly Suggestion[];
   /** The reference image the call started on, so the pill for her current image is hidden. */
   portraitImage?: string;
+  /**
+   * PreCall UI state
+   */
+  preCall?: {
+    /** Drawn on the portrait, such as the start button. */
+    overlay?: ReactNode;
+    /** Shown in place of the call controls. */
+    toolbar?: ReactNode;
+    /** Shows "Calling..." on the portrait. */
+    calling?: boolean;
+    /** Shimmer while the first image loads. */
+    pending?: boolean;
+  };
 };
 
 export function CallPanel({
@@ -51,6 +64,7 @@ export function CallPanel({
   sessionId = null,
   suggestions = [],
   portraitImage,
+  preCall,
 }: CallPanelProps) {
   const room = useRoomContext();
   const avatarTrack = useAvatarVideo();
@@ -60,7 +74,7 @@ export function CallPanel({
   const transcript = useTranscript(sessionId);
   const idleSeconds = useIdleCountdown(onEnd);
   const caption = useSpokenCaption(transcript.messages, captions && !transcriptOpen);
-  const sceneImage = useSceneImage(room, portraitImage);
+  const sceneImage = useSceneImage(room, portraitImage, sessionId);
   // A pill with `turns` leaves after that many visitor messages (spoken, typed, or a tapped
   // pill). The pill for the image she is on is hidden.
   const visitorTurns = transcript.messages.filter((message) => message.role === "user" && message.text.trim()).length;
@@ -88,8 +102,10 @@ export function CallPanel({
     if (avatarTrack) onAvatarReady();
   }, [avatarTrack, onAvatarReady]);
 
+  const connected = !preCall;
   const composer = (
     <Composer
+      disabled={!connected}
       className={narrow ? "flex-1" : "w-full"}
       onSend={send}
     />
@@ -105,7 +121,9 @@ export function CallPanel({
           <AvatarStage
             agentImageUrl={agentImageUrl}
             avatarTrack={avatarTrack}
-            calling={!avatarTrack}
+            calling={connected ? !avatarTrack : Boolean(preCall?.calling)}
+            pending={preCall?.pending}
+            overlay={preCall?.overlay}
             caption={caption}
             idleSeconds={idleSeconds}
             drift={drift}
@@ -126,6 +144,9 @@ export function CallPanel({
           />
         }
         toolbar={
+          preCall ? (
+            preCall.toolbar
+          ) : (
           <CallControlsBar
             compact={narrow && transcriptOpen}
             micEnabled={micEnabled}
@@ -137,6 +158,7 @@ export function CallPanel({
             onToggleTranscript={onToggleTranscript}
             composer={narrow && transcriptOpen ? composer : undefined}
           />
+          )
         }
         messages={
           <TranscriptThread
@@ -153,12 +175,12 @@ export function CallPanel({
 }
 
 /** The image she is on: the call's first one, then each finished scene clip's end frame. */
-function useSceneImage(room: Room, initial: string | undefined) {
+function useSceneImage(room: Room, initial: string | undefined, sessionId: string | null) {
   const [image, setImage] = useState(initial);
 
   useEffect(() => {
     setImage(initial);
-  }, [initial]);
+  }, [initial, sessionId]);
 
   useEffect(() => {
     const onData = (payload: Uint8Array, _participant: Participant | undefined, _kind: unknown, topic?: string) => {
@@ -189,7 +211,12 @@ function useSpokenCaption(messages: TranscriptMessage[], enabled: boolean) {
   const [caption, setCaption] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!text) return;
+    if (!text) {
+      // The thread was cleared for a new call.
+      seen.current = null;
+      setCaption(null);
+      return;
+    }
     if (!enabled) {
       seen.current = text;
       setCaption(null);
