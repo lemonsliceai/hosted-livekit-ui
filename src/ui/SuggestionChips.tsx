@@ -21,7 +21,7 @@ export type SuggestionPill = {
 };
 
 /** How long a tapped pill shows its spinner before it goes away. */
-const BUSY_MS = 2000;
+const BUSY_MS = 1500;
 
 export function toPill(item: Suggestion): SuggestionPill {
   return typeof item === "string" ? { label: item } : item;

@@ -42,6 +42,6 @@ export const AGENT_OVERRIDES: AgentOverrides = {
 // answered but not performed.
 export const SUGGESTIONS = [
   { label: "Hug your pet cat." },
-  { label: "Give me a rose." },
   { label: "Show me a dance move." },
+  { label: "Give me a rose." },
 ];
