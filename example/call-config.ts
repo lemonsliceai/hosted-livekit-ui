@@ -41,7 +41,7 @@ export const AGENT_OVERRIDES: AgentOverrides = {
 // scene clip prompt (scene pills only). A pill tapped while another action is in flight is
 // answered but not performed.
 export const SUGGESTIONS = [
-  { label: "Hug your pet cat.", turns: 5 },
-  { label: "Give me a rose.", turns: 5 },
-  { label: "Show me a dance move.", turns: 5 },
+  { label: "Hug your pet cat." },
+  { label: "Show me a dance move." },
+  { label: "Give me a rose please." },
 ];

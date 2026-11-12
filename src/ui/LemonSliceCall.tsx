@@ -55,6 +55,8 @@ export type LemonSliceCallProps = {
   glint?: boolean;
   /** Dissolves the frame into the backdrop. */
   edgeFade?: boolean;
+  /** Shows what the visitor is saying on the video while the transcript is closed. On by default. */
+  captions?: boolean;
   /**
    * Pills on the video once it is live. Roleplay only; omit for none. A string, or
    * `{ label, turns?, image?, prompt? }`: `turns` hides the pill after that many visitor
@@ -81,6 +83,7 @@ export function LemonSliceCall({
   drift = false,
   glint = false,
   edgeFade = false,
+  captions = true,
   suggestions = [],
   onEnded,
   avatarVariants = true,
@@ -247,6 +250,7 @@ export function LemonSliceCall({
           drift={drift}
           glint={glint}
           edgeFade={edgeFade}
+          captions={captions}
           sessionId={call.connection?.sessionId ?? null}
           suggestions={videoModel === "roleplay" && Array.isArray(suggestions) ? suggestions : []}
           portraitImage={agentImageUrl}
