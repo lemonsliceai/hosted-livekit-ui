@@ -18,6 +18,8 @@ export type SuggestionPill = {
 
 /** The sending sweep on a tapped pill; an action pill leaves when it ends. */
 const BUSY_MS = 2000;
+/** After a tap, every pill is disabled this long. */
+const LOCK_MS = 15000;
 
 /** The right-edge dissolve, in px from the edge. Masked per pill: a mask on the row would kill the blur. */
 const FADE_START = 96;
@@ -36,6 +38,7 @@ export function SuggestionChips({
 }) {
   const [busy, setBusy] = useState<{ label: string; leaves: boolean } | null>(null);
   const [used, setUsed] = useState<readonly string[]>([]);
+  const [locked, setLocked] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
   const [canAdvance, setCanAdvance] = useState(false);
 
@@ -48,6 +51,12 @@ export function SuggestionChips({
     }, BUSY_MS);
     return () => clearTimeout(timer);
   }, [busy]);
+
+  useEffect(() => {
+    if (!locked) return;
+    const timer = setTimeout(() => setLocked(false), LOCK_MS);
+    return () => clearTimeout(timer);
+  }, [locked]);
 
   // Used action pills are gone for the call. Scene pills stay; the current image's pill is hidden upstream.
   const shown = pills.filter((pill) => !used.includes(pill.label));
@@ -93,8 +102,9 @@ export function SuggestionChips({
               type="button"
               className="ls-suggestion"
               data-sending={isBusy ? (busy.leaves ? "leave" : "stay") : undefined}
-              disabled={isBusy}
+              disabled={locked}
               onClick={() => {
+                setLocked(true);
                 setBusy({ label: pill.label, leaves: !pill.image });
                 onSelect(pill);
               }}

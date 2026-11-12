@@ -43,5 +43,5 @@ export const AGENT_OVERRIDES: AgentOverrides = {
 export const SUGGESTIONS = [
   { label: "Hug your pet cat." },
   { label: "Show me a dance move." },
-  { label: "Give me a rose." },
+  { label: "Give me a rose please." },
 ];
