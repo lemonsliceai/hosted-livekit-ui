@@ -416,15 +416,27 @@
   color: var(--ls-mute-slash);
 }
 
-.lemonslice-call .ls-speech {
+/* Caption, then the pill row. The caption stays at the bottom until pills are showing. */
+.lemonslice-call .ls-stage-foot {
   pointer-events: none;
   position: absolute;
-  right: 8px;
-  bottom: 12px;
-  left: 8px;
-  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+}
+
+.lemonslice-call .ls-speech {
+  pointer-events: none;
   display: flex;
   justify-content: center;
+  padding: 0 8px 12px;
+}
+
+.lemonslice-call .ls-stage-foot:has(.ls-suggestions-wrap) .ls-speech {
+  padding-bottom: 0;
 }
 
 .lemonslice-call .ls-speech p {
@@ -449,19 +461,49 @@
   animation: ls-fade-out-up 0.2s ease-out forwards;
 }
 
-/* Prompts on the portrait. The card clips the row; extra chips scroll sideways. */
+/* Prompts on the portrait. The card clips the row; extra chips sit past the right edge. */
+.lemonslice-call .ls-suggestions-wrap {
+  position: relative;
+}
+
 .lemonslice-call .ls-suggestions {
-  position: absolute;
-  z-index: 3;
-  right: 0;
-  bottom: 0;
-  left: 0;
   display: flex;
   gap: 12px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   padding: 16px;
+  pointer-events: auto;
   scrollbar-width: none;
+}
+
+.lemonslice-call .ls-suggestions-next {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1;
+  display: flex;
+  width: 44px;
+  height: 44px;
+  pointer-events: auto;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  padding: 0;
+  background: rgba(98, 98, 98, 0.3);
+  color: #ffffff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.lemonslice-call .ls-suggestions-next:hover {
+  background: rgba(98, 98, 98, 0.45);
+}
+
+.lemonslice-call .ls-suggestions-next:focus-visible {
+  outline: 2px solid var(--ls-focus);
+  outline-offset: 2px;
 }
 
 .lemonslice-call .ls-suggestions::-webkit-scrollbar {
@@ -469,6 +511,8 @@
 }
 
 .lemonslice-call .ls-suggestion {
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   height: 44px;
   flex-shrink: 0;
@@ -509,6 +553,64 @@
   margin-right: 4px;
   border-radius: 9999px;
   object-fit: cover;
+}
+
+.lemonslice-call .ls-suggestion:disabled {
+  cursor: default;
+}
+
+.lemonslice-call .ls-suggestion:disabled:not([data-sending]) {
+  opacity: 0.5;
+}
+
+/* A tapped pill fills from the left for --ls-sending-ms. */
+.lemonslice-call .ls-suggestion > * {
+  position: relative;
+}
+
+.lemonslice-call .ls-suggestion::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.22);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.lemonslice-call .ls-suggestion[data-sending]::before {
+  animation: ls-sending var(--ls-sending-ms, 2s) linear forwards;
+}
+
+@keyframes ls-sending {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* A leaving pill fades near the end of its sweep, then closes up so the row slides. */
+.lemonslice-call .ls-suggestion[data-sending="leave"] {
+  animation: ls-leaving var(--ls-sending-ms, 2s) linear forwards;
+}
+
+@keyframes ls-leaving {
+  0%,
+  65% {
+    opacity: 1;
+    max-width: 320px;
+  }
+  85% {
+    opacity: 0;
+    max-width: 320px;
+    padding: 0 14px;
+    margin-right: 0;
+  }
+  to {
+    opacity: 0;
+    max-width: 0;
+    padding: 0;
+    margin-right: -12px;
+    border-color: transparent;
+  }
 }
 
 @keyframes ls-fade-in-up {
