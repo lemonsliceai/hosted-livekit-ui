@@ -4,6 +4,7 @@ export {
   type LemonSliceCallTheme,
 } from "./ui/LemonSliceCall";
 export { CallPanel, type CallPanelProps } from "./ui/CallPanel";
+export { type Suggestion, type SuggestionPill } from "./ui/SuggestionChips";
 export { CallControlsBar, type CallControlsBarProps } from "./ui/CallControlsBar";
 export { AvatarStage, type AvatarStageProps } from "./ui/AvatarStage";
 export {

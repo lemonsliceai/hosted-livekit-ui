@@ -341,7 +341,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `drift` | Slow float of the portrait. Off by default. |
 | `glint` | Sparkles in front of the portrait. Off by default. |
 | `edgeFade` | Dissolves the frame into the backdrop. Off by default. |
-| `suggestions` | Optional. Roleplay only. Prompts shown on the video until the visitor sends a message or speaks. Defaults to "Pet a cat", "Show me a dance move", "Give me a rose", and "Celebrate with me". Pass your own list, or `false` to hide them. |
+| `suggestions` | Optional. Roleplay only. Pills on the video once it is live; omit for none. A string, or `{ label, turns?, image?, prompt? }`: `turns` hides the pill after that many visitor messages (omit to keep it); `image` makes it a scene change ending on that public `https://` image, which then stays as the reference. The pill for the current image is hidden. |
 | `className` | Optional, for positioning. |
 
 That's it. You're done.

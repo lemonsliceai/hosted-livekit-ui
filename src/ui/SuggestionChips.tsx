@@ -2,23 +2,32 @@
 
 import chevronRight from "./assets/chevron-right.svg";
 
-/** Shown when `suggestions` is not passed. Pass `false` on `LemonSliceCall` to hide them. */
-export const DEFAULT_SUGGESTIONS: readonly string[] = [
-  "Pet a cat",
-  "Show me a dance move",
-  "Give me a rose",
-  "Celebrate with me",
-];
+/** A pill on the video. A plain string is `{ label }`. */
+export type Suggestion = string | SuggestionPill;
+
+export type SuggestionPill = {
+  /** Shown on the pill and sent as the visitor's line. */
+  label: string;
+  /** Hide after this many visitor messages (spoken, typed, or a tapped pill). Omit to keep it for the call. */
+  turns?: number;
+  /** Scene change: the clip ends on this public https image, which then stays as the reference. */
+  image?: string;
+  /** Prompt for the scene clip. Defaults to the agent's. */
+  prompt?: string;
+};
+
+export function toPill(item: Suggestion): SuggestionPill {
+  return typeof item === "string" ? { label: item } : item;
+}
 
 export function SuggestionChips({
-  suggestions,
+  pills,
   onSelect,
 }: {
-  suggestions: readonly string[];
-  onSelect: (text: string) => void;
+  pills: readonly SuggestionPill[];
+  onSelect: (pill: SuggestionPill) => void;
 }) {
-  const items = suggestions.map((item) => item.trim()).filter(Boolean);
-  if (items.length === 0) return null;
+  if (pills.length === 0) return null;
 
   return (
     <div
@@ -30,9 +39,10 @@ export function SuggestionChips({
         event.currentTarget.scrollLeft += event.deltaY;
       }}
     >
-      {items.map((text, index) => (
-        <button key={`${text}-${index}`} type="button" className="ls-suggestion" onClick={() => onSelect(text)}>
-          <span>{text}</span>
+      {pills.map((pill, index) => (
+        <button key={`${pill.label}-${index}`} type="button" className="ls-suggestion" onClick={() => onSelect(pill)}>
+          {pill.image && <img className="ls-suggestion-thumb" src={pill.image} alt="" width={24} height={24} />}
+          <span>{pill.label}</span>
           <img src={chevronRight} alt="" width={20} height={20} />
         </button>
       ))}

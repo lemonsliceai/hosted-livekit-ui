@@ -33,3 +33,13 @@ export const AGENT_OVERRIDES: AgentOverrides = {
   // Cut at 800 characters. Description + suffix is cut at 1,600.
   actionDescriptionSuffix: "",
 };
+
+// Roleplay only. Suggestions for actions. Empty shows none.
+// { label, turns?, image?, prompt? }: `turns` hides the pill after that many visitor
+// messages (omit to keep it for the call). `image` makes it a scene change: the action ends
+// on that public https image, which stays as her reference.
+export const SUGGESTIONS = [
+  { label: "Hug your pet cat.", turns: 5 },
+  { label: "Give me a rose.", turns: 5 },
+  { label: "Want to grab a coffee?", image: "https://6ammc3n5zzf5ljnz.public.blob.vercel-storage.com/inf2-image-uploads/image-sNrbvy0aptPzHJonQqOrn2wMnfglgg.png" },
+];
