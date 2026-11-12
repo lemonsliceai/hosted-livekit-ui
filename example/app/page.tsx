@@ -28,6 +28,8 @@ export default function Home() {
             // glint={true}
             // edgeFade: subtle fade at the edges of the video frame. 
             // edgeFade={true}
+            // Prompts on the video until the visitor sends a message or speaks. On by default.
+            // suggestions={false}
           />
           <button type="button" className="close" onClick={() => setOpen(false)} aria-label="Close">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="20" height="20" aria-hidden>

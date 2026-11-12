@@ -341,6 +341,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `drift` | Slow float of the portrait. Off by default. |
 | `glint` | Sparkles in front of the portrait. Off by default. |
 | `edgeFade` | Dissolves the frame into the backdrop. Off by default. |
+| `suggestions` | Optional. Roleplay only. Prompts shown on the video until the visitor sends a message or speaks. Defaults to "Pet a cat", "Show me a dance move", "Give me a rose", and "Celebrate with me". Pass your own list, or `false` to hide them. |
 | `className` | Optional, for positioning. |
 
 That's it. You're done.
