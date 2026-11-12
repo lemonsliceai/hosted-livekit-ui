@@ -304,10 +304,11 @@ Each entry is an id (`"roleplay"`, `"premium"`, or `"standard"`) or `{ model, la
 Keep descriptions to a few words; the menu is narrow and clips the rest. Repeats and
 unknown ids are dropped. A single entry hides the dropdown.
 
-Before a call, the portrait is re-framed so it suits the video model. The crop is prepared
-once per image through your `/api/lemonslice/avatar-variant` route (copy it from
-`example/app/api/lemonslice/avatar-variant/route.ts`) and cached. Pass `avatarVariants={false}`
-to use the image as is.
+Before a call, the portrait is re-framed so it suits the video model. The crop for the
+selected model is prepared once per image through your `/api/lemonslice/avatar-variant` route
+(copy it from `example/app/api/lemonslice/avatar-variant/route.ts`) and cached by LemonSlice.
+If the image has no face, the call setup shows a warning. Pass `avatarVariants={false}` to use
+the image as is.
 
 The component fills its parent. Give that parent a height.
 
