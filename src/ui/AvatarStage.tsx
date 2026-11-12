@@ -63,9 +63,11 @@ export function AvatarStage({
           Still there? Ending in {idleSeconds}s
         </p>
       )}
-      <SpeechTag text={caption} />
+      <div className="ls-stage-foot">
+        <SpeechTag text={caption} />
+        {suggestions}
+      </div>
       {overlay}
-      {suggestions}
     </div>
   );
 }
