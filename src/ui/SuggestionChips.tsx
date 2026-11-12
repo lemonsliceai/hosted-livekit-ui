@@ -20,8 +20,8 @@ export type SuggestionPill = {
   prompt?: string;
 };
 
-/** How long a tapped pill shows its spinner, so the tap visibly registers. */
-const BUSY_MS = 1000;
+/** How long a tapped pill shows its spinner before it goes away. */
+const BUSY_MS = 2000;
 
 export function toPill(item: Suggestion): SuggestionPill {
   return typeof item === "string" ? { label: item } : item;
@@ -35,14 +35,20 @@ export function SuggestionChips({
   onSelect: (pill: SuggestionPill) => void;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
+  const [used, setUsed] = useState<readonly string[]>([]);
 
   useEffect(() => {
     if (busy == null) return;
-    const timer = setTimeout(() => setBusy(null), BUSY_MS);
+    const timer = setTimeout(() => {
+      setUsed((current) => [...current, busy]);
+      setBusy(null);
+    }, BUSY_MS);
     return () => clearTimeout(timer);
   }, [busy]);
 
-  if (pills.length === 0) return null;
+  // A tapped pill spins, then leaves for the rest of the call.
+  const shown = pills.filter((pill) => !used.includes(pill.label));
+  if (shown.length === 0) return null;
 
   return (
     <div
@@ -54,8 +60,8 @@ export function SuggestionChips({
         event.currentTarget.scrollLeft += event.deltaY;
       }}
     >
-      {pills.map((pill, index) => {
-        const key = `${pill.label}-${index}`;
+      {shown.map((pill) => {
+        const key = pill.label;
         const isBusy = busy === key;
         return (
           <button
