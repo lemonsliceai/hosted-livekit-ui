@@ -34,8 +34,7 @@ export type CallPanelProps = {
   /** The reference image the call started on, so the pill for her current image is hidden. */
   portraitImage?: string;
   /**
-   * Before the room connects the panel still renders, so the layout and portrait
-   * stay mounted when the call goes live instead of being swapped for a new tree.
+   * PreCall UI state
    */
   preCall?: {
     /** Drawn on the portrait, such as the start button. */

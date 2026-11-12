@@ -225,11 +225,6 @@ export function LemonSliceCall({
       data-theme={theme === "system" ? undefined : theme}
       className={["lemonslice-call", className ?? ""].filter(Boolean).join(" ")}
     >
-      {/*
-        One tree for the whole call. LiveKitRoom stays mounted and only connects once the
-        token arrives, so the portrait, layout and toolbar are never torn down and rebuilt
-        (that remount was the flicker when the room went live).
-      */}
       <LiveKitRoom
         token={call.connection?.token}
         serverUrl={call.connection?.serverUrl}
