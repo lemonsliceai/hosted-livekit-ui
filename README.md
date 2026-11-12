@@ -302,6 +302,11 @@ Each entry is an id (`"roleplay"`, `"premium"`, or `"standard"`) or `{ model, la
 Keep descriptions to a few words; the menu is narrow and clips the rest. Repeats and
 unknown ids are dropped. A single entry hides the dropdown.
 
+Before a call, the portrait is re-framed so it suits the video model. The crop is prepared
+once per image through your `/api/lemonslice/avatar-variant` route (copy it from
+`example/app/api/lemonslice/avatar-variant/route.ts`) and cached. Pass `avatarVariants={false}`
+to use the image as is.
+
 The component fills its parent. Give that parent a height.
 
 ```tsx
@@ -341,7 +346,8 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `drift` | Slow float of the portrait. Off by default. |
 | `glint` | Sparkles in front of the portrait. Off by default. |
 | `edgeFade` | Dissolves the frame into the backdrop. Off by default. |
-| `suggestions` | Optional. Roleplay only. Pills on the video once it is live; omit for none. A string, or `{ label, turns?, image?, prompt? }`: `turns` hides the pill after that many visitor messages (omit to keep it); `image` makes it a scene change ending on that public `https://` image, which then stays as the reference. The pill for the current image is hidden. |
+| `suggestions` | Optional. Roleplay only. Pills on the video once it is live; omit for none. A string, or `{ label, turns?, image?, prompt? }`: `turns` hides the pill after that many visitor messages (omit to keep it); `image` makes it a scene change ending on that public `https://` image, which then stays as the reference; `prompt` replaces the default scene clip prompt. The pill for the current image is hidden. |
+| `avatarVariants` | Optional. Re-frames the portrait for the video model, once per image, then cached. On by default; `false` uses the image as is. |
 | `className` | Optional, for positioning. |
 
 That's it. You're done.

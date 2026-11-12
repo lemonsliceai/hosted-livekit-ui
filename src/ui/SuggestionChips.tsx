@@ -12,7 +12,7 @@ export type SuggestionPill = {
   turns?: number;
   /** Scene change: the clip ends on this public https image, which then stays as the reference. */
   image?: string;
-  /** Prompt for the scene clip. Defaults to the agent's. */
+  /** Scene pills only. Replaces the default scene clip prompt; the agent appends its scene rules. */
   prompt?: string;
 };
 
