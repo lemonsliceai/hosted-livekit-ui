@@ -87,6 +87,11 @@ export function useTranscript(sessionId: string | null) {
     return processedTranscripts.current;
   }, []);
 
+  // A new call starts with an empty thread. The room outlives a single call.
+  useEffect(() => {
+    setMessages([]);
+  }, [sessionId]);
+
   useEffect(() => {
     let cancelled = false;
 

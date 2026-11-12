@@ -53,9 +53,13 @@ export function useIdleCountdown(onElapsed: () => void) {
       setDeadlineMs(Date.now() + Math.max(0, remaining) * 1000);
     };
 
+    const onDisconnected = () => setDeadlineMs(null);
+
     room.on(RoomEvent.DataReceived, onData);
+    room.on(RoomEvent.Disconnected, onDisconnected);
     return () => {
       room.off(RoomEvent.DataReceived, onData);
+      room.off(RoomEvent.Disconnected, onDisconnected);
     };
   }, [room]);
 

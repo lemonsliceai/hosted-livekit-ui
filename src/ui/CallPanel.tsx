@@ -2,7 +2,7 @@
 
 import { RoomAudioRenderer, useRoomContext, useTrackToggle } from "@livekit/components-react";
 import { RoomEvent, Track, type Participant, type Room } from "livekit-client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAvatarVideo } from "../core/useAvatarVideo";
 import { CallControlsBar } from "./CallControlsBar";
 import { CallLayout } from "./CallLayout";
@@ -33,6 +33,20 @@ export type CallPanelProps = {
   suggestions?: readonly Suggestion[];
   /** The reference image the call started on, so the pill for her current image is hidden. */
   portraitImage?: string;
+  /**
+   * Before the room connects the panel still renders, so the layout and portrait
+   * stay mounted when the call goes live instead of being swapped for a new tree.
+   */
+  preCall?: {
+    /** Drawn on the portrait, such as the start button. */
+    overlay?: ReactNode;
+    /** Shown in place of the call controls. */
+    toolbar?: ReactNode;
+    /** Shows "Calling..." on the portrait. */
+    calling?: boolean;
+    /** Shimmer while the first image loads. */
+    pending?: boolean;
+  };
 };
 
 export function CallPanel({
@@ -48,6 +62,7 @@ export function CallPanel({
   sessionId = null,
   suggestions = [],
   portraitImage,
+  preCall,
 }: CallPanelProps) {
   const room = useRoomContext();
   const avatarTrack = useAvatarVideo();
@@ -85,8 +100,10 @@ export function CallPanel({
     if (avatarTrack) onAvatarReady();
   }, [avatarTrack, onAvatarReady]);
 
+  const connected = !preCall;
   const composer = (
     <Composer
+      disabled={!connected}
       className={narrow ? "flex-1" : "w-full"}
       onSend={send}
     />
@@ -102,7 +119,9 @@ export function CallPanel({
           <AvatarStage
             agentImageUrl={agentImageUrl}
             avatarTrack={avatarTrack}
-            calling={!avatarTrack}
+            calling={connected ? !avatarTrack : Boolean(preCall?.calling)}
+            pending={preCall?.pending}
+            overlay={preCall?.overlay}
             caption={caption}
             idleSeconds={idleSeconds}
             drift={drift}
@@ -123,6 +142,9 @@ export function CallPanel({
           />
         }
         toolbar={
+          preCall ? (
+            preCall.toolbar
+          ) : (
           <CallControlsBar
             compact={narrow && transcriptOpen}
             micEnabled={micEnabled}
@@ -134,6 +156,7 @@ export function CallPanel({
             onToggleTranscript={onToggleTranscript}
             composer={narrow && transcriptOpen ? composer : undefined}
           />
+          )
         }
         messages={
           <TranscriptThread
