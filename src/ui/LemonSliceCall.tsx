@@ -126,7 +126,14 @@ export function LemonSliceCall({
   }
   onEndedRef.current = onEnded;
 
-  const keepCrops = (result: CropResult) => {
+  // The photo on screen, set after commit. Results for any other photo are dropped.
+  const imageRef = useRef(agentImageUrl);
+  useLayoutEffect(() => {
+    imageRef.current = agentImageUrl;
+  }, [agentImageUrl]);
+
+  const keepCrops = (image: string, result: CropResult) => {
+    if (imageRef.current !== image) return;
     setCrops((current) => ({ ...current, ...result.images }));
     // One "no face" answer is enough to warn.
     if (result.faceDetected !== undefined) setFaceDetected((current) => (current === false ? false : result.faceDetected));
@@ -137,10 +144,11 @@ export function LemonSliceCall({
   useEffect(() => {
     if (!variantsOn || !agentImageUrl) return;
     const controller = new AbortController();
-    fetchCrops(agentImageUrl, cropsForModels(modelIds), false, controller.signal)
-      .then(keepCrops)
+    const image = agentImageUrl;
+    fetchCrops(image, cropsForModels(modelIds), false, controller.signal)
+      .then((result) => keepCrops(image, result))
       .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || imageRef.current !== image) return;
         setCrops((current) => current ?? {});
         setPrepareError(error instanceof Error ? error.message : PREPARE_FAILED_MESSAGE);
       });
@@ -151,8 +159,6 @@ export function LemonSliceCall({
   // switch doesn't cancel a generation, so switching back waits for it instead of asking again.
   const lookedUp = crops !== undefined;
   const preparedImage = crops?.[crop];
-  const imageRef = useRef(agentImageUrl);
-  imageRef.current = agentImageUrl;
   const generating = useRef<{ image?: string; crops: Set<string> }>({ crops: new Set() });
   useEffect(() => {
     if (!variantsOn || !agentImageUrl || !lookedUp || preparedImage) return;
@@ -165,7 +171,7 @@ export function LemonSliceCall({
     fetchCrops(image, [crop], true)
       .then((result) => {
         if (imageRef.current !== image) return;
-        keepCrops(result);
+        keepCrops(image, result);
         if (!result.images[crop]) setPrepareError(PREPARE_FAILED_MESSAGE);
       })
       .catch((error: unknown) => {
