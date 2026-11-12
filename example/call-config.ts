@@ -43,9 +43,5 @@ export const AGENT_OVERRIDES: AgentOverrides = {
 export const SUGGESTIONS = [
   { label: "Hug your pet cat.", turns: 5 },
   { label: "Give me a rose.", turns: 5 },
-  {
-    label: "Put on your apron.",
-    image: "https://6ammc3n5zzf5ljnz.public.blob.vercel-storage.com/inf2-image-uploads/image-UaCg5tLxL83udCPMVrkotx6EsjcVIf.png",
-    prompt: "She puts on her apron happily.",
-  },
+  { label: "Show me a dance move.", turns: 5 },
 ];
