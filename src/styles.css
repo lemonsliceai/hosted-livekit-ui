@@ -502,6 +502,15 @@
   flex-shrink: 0;
 }
 
+/* A scene pill's end frame. */
+.lemonslice-call .ls-suggestion .ls-suggestion-thumb {
+  width: 24px;
+  height: 24px;
+  margin-right: 4px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
 @keyframes ls-fade-in-up {
   from {
     opacity: 0;

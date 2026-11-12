@@ -8,8 +8,8 @@ import { CallControlsBar } from "./CallControlsBar";
 import { CallLayout } from "./CallLayout";
 import { CallPanel } from "./CallPanel";
 import { Composer } from "./Composer";
+import type { Suggestion } from "./SuggestionChips";
 import { playHangupSound, useCallingRingTone } from "./callSounds";
-import { DEFAULT_SUGGESTIONS } from "./SuggestionChips";
 import {
   PreCallSetup,
   PreCallStartButton,
@@ -59,11 +59,11 @@ export type LemonSliceCallProps = {
   /** Dissolves the frame into the backdrop. */
   edgeFade?: boolean;
   /**
-   * Prompts drawn on the video once it is live. They leave when the visitor
-   * sends a message or speaks. Shown only for the Roleplay model.
-   * Defaults to the built-in prompts. Pass `false` to hide them.
+   * Pills on the video once it is live. Roleplay only; omit for none. A string, or
+   * `{ label, turns?, image?, prompt? }`: `turns` hides the pill after that many visitor
+   * messages (omit to keep it), `image` makes it a scene change that ends on that image.
    */
-  suggestions?: readonly string[] | false;
+  suggestions?: readonly Suggestion[];
   /** Called whenever the call ends */
   onEnded?: () => void;
   /**
@@ -84,7 +84,7 @@ export function LemonSliceCall({
   drift = false,
   glint = false,
   edgeFade = false,
-  suggestions = DEFAULT_SUGGESTIONS,
+  suggestions = [],
   onEnded,
   avatarVariants = true,
   className,
@@ -250,7 +250,8 @@ export function LemonSliceCall({
             glint={glint}
             edgeFade={edgeFade}
             sessionId={call.connection.sessionId}
-            suggestions={suggestions === false || videoModel !== "roleplay" ? [] : suggestions}
+            suggestions={videoModel === "roleplay" && Array.isArray(suggestions) ? suggestions : []}
+            portraitImage={agentImageUrl}
           />
         </LiveKitRoom>
       ) : (

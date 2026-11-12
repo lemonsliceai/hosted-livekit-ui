@@ -2,8 +2,8 @@
 
 ## v0.3.0
 
-Improve developer ergonomics: simpler example config, clearer override names, and
-FaceTime labels in the model dropdown. Needs the matching `hosted-livekit-agent`.
+Improve developer ergonomics. Add suggestion pills, including scene changes to a new
+reference image.
 
 ## v0.2.0
 
