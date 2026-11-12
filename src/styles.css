@@ -449,6 +449,59 @@
   animation: ls-fade-out-up 0.2s ease-out forwards;
 }
 
+/* Prompts on the portrait. The card clips the row; extra chips scroll sideways. */
+.lemonslice-call .ls-suggestions {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 16px;
+  scrollbar-width: none;
+}
+
+.lemonslice-call .ls-suggestions::-webkit-scrollbar {
+  display: none;
+}
+
+.lemonslice-call .ls-suggestion {
+  display: inline-flex;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  padding: 0 14px;
+  background: rgba(98, 98, 98, 0.3);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  white-space: nowrap;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  user-select: none;
+}
+
+.lemonslice-call .ls-suggestion:hover {
+  background: rgba(98, 98, 98, 0.45);
+}
+
+.lemonslice-call .ls-suggestion:focus-visible {
+  outline: 2px solid var(--ls-focus);
+  outline-offset: 2px;
+}
+
+.lemonslice-call .ls-suggestion img {
+  flex-shrink: 0;
+}
+
 @keyframes ls-fade-in-up {
   from {
     opacity: 0;

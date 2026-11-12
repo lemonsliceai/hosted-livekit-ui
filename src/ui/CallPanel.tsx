@@ -7,6 +7,7 @@ import { useAvatarVideo } from "../core/useAvatarVideo";
 import { CallControlsBar } from "./CallControlsBar";
 import { CallLayout } from "./CallLayout";
 import { Composer } from "./Composer";
+import { SuggestionChips } from "./SuggestionChips";
 import { TranscriptThread } from "./TranscriptThread";
 import { AvatarStage } from "./AvatarStage";
 import { useIdleCountdown } from "./useIdleCountdown";
@@ -23,6 +24,8 @@ export type CallPanelProps = {
   glint?: boolean;
   edgeFade?: boolean;
   sessionId?: string | null;
+  /** Prompts on the video until the visitor sends a message or speaks. */
+  suggestions?: readonly string[];
 };
 
 export function CallPanel({
@@ -36,6 +39,7 @@ export function CallPanel({
   glint = false,
   edgeFade = false,
   sessionId = null,
+  suggestions = [],
 }: CallPanelProps) {
   const avatarTrack = useAvatarVideo();
   const { toggle: toggleMic, enabled: micEnabled, pending: micPending } = useTrackToggle({
@@ -44,6 +48,17 @@ export function CallPanel({
   const transcript = useTranscript(sessionId);
   const idleSeconds = useIdleCountdown(onEnd);
   const caption = useSpokenCaption(transcript.messages, !transcriptOpen);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(true);
+  const visitorSpoke = transcript.messages.some((message) => message.role === "user" && message.text.trim());
+
+  useEffect(() => {
+    if (visitorSpoke) setSuggestionsOpen(false);
+  }, [visitorSpoke]);
+
+  const send = async (text: string) => {
+    setSuggestionsOpen(false);
+    await transcript.send(text);
+  };
 
   useEffect(() => {
     if (avatarTrack) onAvatarReady();
@@ -52,7 +67,7 @@ export function CallPanel({
   const composer = (
     <Composer
       className={narrow ? "flex-1" : "w-full"}
-      onSend={transcript.send}
+      onSend={send}
     />
   );
 
@@ -72,6 +87,18 @@ export function CallPanel({
             drift={drift}
             glint={glint}
             edgeFade={edgeFade}
+            suggestions={
+              suggestionsOpen && avatarTrack ? (
+                <SuggestionChips
+                  suggestions={suggestions}
+                  onSelect={(text) => {
+                    void send(text).catch((error: unknown) => {
+                      console.error("[lemonslice] could not send the message:", error);
+                    });
+                  }}
+                />
+              ) : null
+            }
           />
         }
         toolbar={

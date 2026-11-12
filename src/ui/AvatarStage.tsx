@@ -21,6 +21,8 @@ export type AvatarStageProps = {
   edgeFade?: boolean;
   /** Control drawn on top of the portrait, such as the pre-call start button. */
   overlay?: ReactNode;
+  /** Prompt chips along the bottom of the portrait. */
+  suggestions?: ReactNode;
   /** Shimmer in the portrait while the first image is still loading. */
   pending?: boolean;
   /** Seconds left before the call ends. Hidden when null. */
@@ -36,6 +38,7 @@ export function AvatarStage({
   glint = false,
   edgeFade = false,
   overlay = null,
+  suggestions = null,
   idleSeconds = null,
   pending = false,
 }: AvatarStageProps) {
@@ -62,6 +65,7 @@ export function AvatarStage({
       )}
       <SpeechTag text={caption} />
       {overlay}
+      {suggestions}
     </div>
   );
 }

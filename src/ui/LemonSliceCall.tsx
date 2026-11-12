@@ -9,6 +9,7 @@ import { CallLayout } from "./CallLayout";
 import { CallPanel } from "./CallPanel";
 import { Composer } from "./Composer";
 import { playHangupSound, useCallingRingTone } from "./callSounds";
+import { DEFAULT_SUGGESTIONS } from "./SuggestionChips";
 import {
   PreCallSetup,
   PreCallStartButton,
@@ -57,6 +58,12 @@ export type LemonSliceCallProps = {
   glint?: boolean;
   /** Dissolves the frame into the backdrop. */
   edgeFade?: boolean;
+  /**
+   * Prompts drawn on the video once it is live. They leave when the visitor
+   * sends one, types a message, or speaks. Shown only for the Roleplay model.
+   * Defaults to the built-in prompts. Pass `false` to hide them.
+   */
+  suggestions?: readonly string[] | false;
   /** Called whenever the call ends */
   onEnded?: () => void;
   /**
@@ -77,6 +84,7 @@ export function LemonSliceCall({
   drift = false,
   glint = false,
   edgeFade = false,
+  suggestions = DEFAULT_SUGGESTIONS,
   onEnded,
   avatarVariants = true,
   className,
@@ -242,6 +250,7 @@ export function LemonSliceCall({
             glint={glint}
             edgeFade={edgeFade}
             sessionId={call.connection.sessionId}
+            suggestions={suggestions === false || videoModel !== "roleplay" ? [] : suggestions}
           />
         </LiveKitRoom>
       ) : (
