@@ -38,7 +38,8 @@ export const AGENT_OVERRIDES: AgentOverrides = {
 // { label, turns?, image?, prompt? }: `turns` hides the pill after that many visitor
 // messages (omit to keep it for the call). `image` makes it a scene change: the action ends
 // on that public https image, which stays as her reference. `prompt` replaces the default
-// scene clip prompt (scene pills only).
+// scene clip prompt (scene pills only). A pill tapped while another action is in flight is
+// answered but not performed.
 export const SUGGESTIONS = [
   { label: "Hug your pet cat.", turns: 5 },
   { label: "Give me a rose.", turns: 5 },

@@ -2,7 +2,10 @@
 
 import chevronRight from "./assets/chevron-right.svg";
 
-/** A pill on the video. A plain string is `{ label }`. */
+/**
+ * A pill on the video. A plain string is `{ label }`. Tapping one sends its label as the
+ * visitor's line; if another action is already in flight, she answers it but does not perform it.
+ */
 export type Suggestion = string | SuggestionPill;
 
 export type SuggestionPill = {

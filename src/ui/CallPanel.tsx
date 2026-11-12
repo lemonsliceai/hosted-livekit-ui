@@ -71,6 +71,7 @@ export function CallPanel({
     const text = pill.label.trim();
     if (pill.image) {
       // The request first, then the line it announces; both ride the same reliable channel.
+      // One action at a time on the agent: tapped during another action, this is answered, not done.
       const request = { type: "scene", text, image: pill.image, ...(pill.prompt ? { prompt: pill.prompt } : {}) };
       await room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify(request)), {
         reliable: true,
