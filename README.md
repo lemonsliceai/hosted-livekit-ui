@@ -224,6 +224,7 @@ to your user.
   "event": "session.usage",
   "session_id": "0f4c1a9e-5b77-4d21-9d0e-8c3b1f2a6e55",
   "credits_used_total": 12.5,
+  "total_billable_duration_sec": 76.4,
   "occurred_at": "2026-10-15T18:03:21.512165+00:00"
 }
 
@@ -232,6 +233,7 @@ to your user.
   "event": "session.ended",
   "session_id": "0f4c1a9e-5b77-4d21-9d0e-8c3b1f2a6e55",
   "credits_used_total": 41.75,
+  "total_billable_duration_sec": 254.2,
   "full_transcript": [
     { "role": "user",   "text": "Hey, what can you do?",      "occurred_at": "2026-10-15T18:02:05.118431+00:00" },
     { "role": "avatar", "text": "I can walk you through it.", "occurred_at": "2026-10-15T18:02:07.904772+00:00" }
