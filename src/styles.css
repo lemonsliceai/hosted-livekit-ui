@@ -511,6 +511,28 @@
   object-fit: cover;
 }
 
+.lemonslice-call .ls-suggestion:disabled {
+  cursor: default;
+}
+
+/* Shown on a tapped pill for a moment, in the chevron's place. */
+.lemonslice-call .ls-suggestion-spinner {
+  width: 16px;
+  height: 16px;
+  margin: 2px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 9999px;
+  animation: ls-spin 0.8s linear infinite;
+}
+
+@keyframes ls-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes ls-fade-in-up {
   from {
     opacity: 0;

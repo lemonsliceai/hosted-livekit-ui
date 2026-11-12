@@ -21,6 +21,8 @@ export default function Home() {
             // For a subtitle, use { model: "roleplay", description: "..." } instead.
             models={["roleplay", "premium", "standard"]}
             theme="dark"
+            // The visitor's words are not shown on the video.
+            captions={false}
             // UI effects.
             // drift: subtle movement of the video frame.
             // drift={true}

@@ -28,6 +28,8 @@ export type CallPanelProps = {
   drift?: boolean;
   glint?: boolean;
   edgeFade?: boolean;
+  /** Show what the visitor is saying on the video while the transcript is closed. */
+  captions?: boolean;
   sessionId?: string | null;
   /** Pills on the video. */
   suggestions?: readonly Suggestion[];
@@ -45,6 +47,7 @@ export function CallPanel({
   drift = false,
   glint = false,
   edgeFade = false,
+  captions = true,
   sessionId = null,
   suggestions = [],
   portraitImage,
@@ -56,7 +59,7 @@ export function CallPanel({
   });
   const transcript = useTranscript(sessionId);
   const idleSeconds = useIdleCountdown(onEnd);
-  const caption = useSpokenCaption(transcript.messages, !transcriptOpen);
+  const caption = useSpokenCaption(transcript.messages, captions && !transcriptOpen);
   const sceneImage = useSceneImage(room, portraitImage);
   // A pill with `turns` leaves after that many visitor messages (spoken, typed, or a tapped
   // pill). The pill for the image she is on is hidden.

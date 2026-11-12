@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import chevronRight from "./assets/chevron-right.svg";
 
 /**
@@ -19,6 +20,9 @@ export type SuggestionPill = {
   prompt?: string;
 };
 
+/** How long a tapped pill shows its spinner, so the tap visibly registers. */
+const BUSY_MS = 1000;
+
 export function toPill(item: Suggestion): SuggestionPill {
   return typeof item === "string" ? { label: item } : item;
 }
@@ -30,6 +34,14 @@ export function SuggestionChips({
   pills: readonly SuggestionPill[];
   onSelect: (pill: SuggestionPill) => void;
 }) {
+  const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (busy == null) return;
+    const timer = setTimeout(() => setBusy(null), BUSY_MS);
+    return () => clearTimeout(timer);
+  }, [busy]);
+
   if (pills.length === 0) return null;
 
   return (
@@ -42,13 +54,30 @@ export function SuggestionChips({
         event.currentTarget.scrollLeft += event.deltaY;
       }}
     >
-      {pills.map((pill, index) => (
-        <button key={`${pill.label}-${index}`} type="button" className="ls-suggestion" onClick={() => onSelect(pill)}>
-          {pill.image && <img className="ls-suggestion-thumb" src={pill.image} alt="" width={24} height={24} />}
-          <span>{pill.label}</span>
-          <img src={chevronRight} alt="" width={20} height={20} />
-        </button>
-      ))}
+      {pills.map((pill, index) => {
+        const key = `${pill.label}-${index}`;
+        const isBusy = busy === key;
+        return (
+          <button
+            key={key}
+            type="button"
+            className="ls-suggestion"
+            disabled={isBusy}
+            onClick={() => {
+              setBusy(key);
+              onSelect(pill);
+            }}
+          >
+            {pill.image && <img className="ls-suggestion-thumb" src={pill.image} alt="" width={24} height={24} />}
+            <span>{pill.label}</span>
+            {isBusy ? (
+              <span className="ls-suggestion-spinner" aria-hidden />
+            ) : (
+              <img src={chevronRight} alt="" width={20} height={20} />
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
