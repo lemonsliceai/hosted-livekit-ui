@@ -40,13 +40,15 @@ export function SuggestionChips({
   useEffect(() => {
     if (busy == null) return;
     const timer = setTimeout(() => {
-      setUsed((current) => [...current, busy]);
+      // Action pills leave once used. Scene pills stay; the one for her current image is hidden upstream.
+      const pill = pills.find((item) => item.label === busy);
+      if (pill && !pill.image) setUsed((current) => [...current, busy]);
       setBusy(null);
     }, BUSY_MS);
     return () => clearTimeout(timer);
-  }, [busy]);
+  }, [busy, pills]);
 
-  // A tapped pill spins, then leaves for the rest of the call.
+  // A tapped action pill spins, then leaves for the rest of the call.
   const shown = pills.filter((pill) => !used.includes(pill.label));
   if (shown.length === 0) return null;
 
