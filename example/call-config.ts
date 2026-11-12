@@ -37,9 +37,14 @@ export const AGENT_OVERRIDES: AgentOverrides = {
 // Roleplay only. Suggestions for actions. Empty shows none.
 // { label, turns?, image?, prompt? }: `turns` hides the pill after that many visitor
 // messages (omit to keep it for the call). `image` makes it a scene change: the action ends
-// on that public https image, which stays as her reference.
+// on that public https image, which stays as her reference. `prompt` replaces the default
+// scene clip prompt (scene pills only).
 export const SUGGESTIONS = [
   { label: "Hug your pet cat.", turns: 5 },
   { label: "Give me a rose.", turns: 5 },
-  { label: "Want to grab a coffee?", image: "https://6ammc3n5zzf5ljnz.public.blob.vercel-storage.com/inf2-image-uploads/image-sNrbvy0aptPzHJonQqOrn2wMnfglgg.png" },
+  {
+    label: "Put on your apron.",
+    image: "https://6ammc3n5zzf5ljnz.public.blob.vercel-storage.com/inf2-image-uploads/image-UaCg5tLxL83udCPMVrkotx6EsjcVIf.png",
+    prompt: "She puts on her apron happily.",
+  },
 ];
