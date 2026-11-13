@@ -1,49 +1,45 @@
-/** Portrait for any base model, bust for roleplay. Each zoom is included once. */
-export function variantsForModels(models: readonly string[]): Array<"portrait" | "bust"> {
-  return [
-    ...(models.some((model) => model !== "roleplay") ? (["portrait"] as const) : []),
-    ...(models.includes("roleplay") ? (["bust"] as const) : []),
-  ];
-}
-
 const AVATAR_VARIANT_PATH = "/api/lemonslice/avatar-variant";
-const cache = new Map<string, Record<string, string>>();
 
-function cacheKey(imageUrl: string, models: readonly string[]) {
-  return `${imageUrl}\n${variantsForModels(models).join(",")}`;
+/** The crop a call starts from: bust for roleplay, portrait for the base models. */
+export function cropForModel(model: string) {
+  return model === "roleplay" ? "bust" : "portrait";
 }
 
-/** Crops already prepared for this image in this page session. */
-export function cachedAvatarVariants(imageUrl: string, models: readonly string[]) {
-  return cache.get(cacheKey(imageUrl, models));
+/** The crops for these models, each once. */
+export function cropsForModels(models: readonly string[]) {
+  return [...new Set(models.map(cropForModel))];
 }
 
-async function postAvatarVariants(imageUrl: string, variantIds: readonly string[], generate: boolean) {
+export type CropResult = {
+  images: Record<string, string>;
+  /** False when the photo has no face; undefined when unknown. */
+  faceDetected?: boolean;
+};
+
+/**
+ * `generate: false` only looks the crops up (fast; nothing is downloaded on a hit).
+ * `generate: true` also creates the ones that are missing.
+ */
+export async function fetchCrops(
+  imageUrl: string,
+  crops: readonly string[],
+  generate: boolean,
+  signal?: AbortSignal,
+): Promise<CropResult> {
   const response = await fetch(AVATAR_VARIANT_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ image_url: imageUrl, variant_ids: variantIds, generate }),
+    body: JSON.stringify({ image_url: imageUrl, variant_ids: crops, generate }),
+    signal,
   });
-  const payload = (await response.json().catch(() => null)) as { images?: Record<string, string>; error?: string } | null;
+  const payload = (await response.json().catch(() => null)) as {
+    images?: Record<string, string>;
+    face_detected?: unknown;
+    error?: string;
+  } | null;
   if (!response.ok || !payload?.images) throw new Error(payload?.error || "Could not prepare the avatar");
-  return payload.images;
-}
-
-/**
- * Looks up existing crops, then generates the missing ones. `onLookup` fires as soon as the lookup
- * returns, with whatever was found (possibly nothing), so the caller can stop waiting on it.
- */
-export async function loadAvatarVariants(
-  imageUrl: string,
-  models: readonly string[],
-  onLookup: (found: Record<string, string>) => void,
-) {
-  const variantIds = variantsForModels(models);
-  const found = await postAvatarVariants(imageUrl, variantIds, false);
-  onLookup(found);
-  const missing = variantIds.filter((id) => !found[id]);
-  const images = missing.length === 0 ? found : { ...found, ...(await postAvatarVariants(imageUrl, missing, true)) };
-  if (variantIds.some((id) => !images[id])) throw new Error("Could not prepare the avatar");
-  cache.set(cacheKey(imageUrl, models), images);
-  return images;
+  return {
+    images: payload.images,
+    ...(typeof payload.face_detected === "boolean" ? { faceDetected: payload.face_detected } : {}),
+  };
 }

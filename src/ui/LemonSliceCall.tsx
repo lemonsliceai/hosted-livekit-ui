@@ -16,10 +16,12 @@ import {
   type LemonSliceVideoModel,
   type LemonSliceVideoModelInput,
 } from "./PreCallSetup";
-import { cachedAvatarVariants, loadAvatarVariants } from "./avatarVariant";
+import { cropForModel, cropsForModels, fetchCrops, type CropResult } from "./avatarVariant";
 
 const NARROW_BELOW = 880;
 const MIC_BLOCKED_MESSAGE = "Microphone access was blocked. Allow it for your browser, then try again.";
+const NO_FACE_MESSAGE = "We could not find a face in your image. Provide an image with a face for best quality.";
+const PREPARE_FAILED_MESSAGE = "Could not prepare the avatar";
 
 /** LiveKit rejects in-flight connect and mic publish when the visitor hangs up. */
 function isExpectedDisconnect(error: Error) {
@@ -67,7 +69,8 @@ export type LemonSliceCallProps = {
   onEnded?: () => void;
   /**
    * Crops prepare in the background through `/api/lemonslice/avatar-variant`. A base model uses
-   * the portrait crop and roleplay uses the bust crop. The preparing pill shows after
+   * the portrait crop and roleplay uses the bust crop. Every offered model's crop is looked up,
+   * and only the selected one is generated. The preparing pill shows after
    * Start, and only when that crop is not ready yet. Set false to skip crop prep.
    */
   avatarVariants?: boolean;
@@ -109,37 +112,74 @@ export function LemonSliceCall({
       : modelOptions[0].value;
 
   const modelIds = modelOptions.map((option) => option.value);
-  const cached = variantsOn && agentImageUrl ? cachedAvatarVariants(agentImageUrl, modelIds) : undefined;
-  // undefined = lookup still running. An empty object = lookup finished with nothing cached.
-  const [variants, setVariants] = useState<Record<string, string> | undefined>(cached);
+  const crop = cropForModel(videoModel);
+  // Crops found or made for this photo. undefined until the first lookup answers.
+  const [crops, setCrops] = useState<Record<string, string> | undefined>(undefined);
+  const [faceDetected, setFaceDetected] = useState<boolean | undefined>(undefined);
   const [variantImage, setVariantImage] = useState(agentImageUrl);
   // Crops belong to one photo. Drop them in this render when the photo changes, before paint.
   if (variantImage !== agentImageUrl) {
     setVariantImage(agentImageUrl);
-    setVariants(cached);
+    setCrops(undefined);
+    setFaceDetected(undefined);
     setPrepareError(null);
   }
   onEndedRef.current = onEnded;
 
+  // The photo on screen, set after commit. Results for any other photo are dropped.
+  const imageRef = useRef(agentImageUrl);
+  useLayoutEffect(() => {
+    imageRef.current = agentImageUrl;
+  }, [agentImageUrl]);
+
+  const keepCrops = (image: string, result: CropResult) => {
+    if (imageRef.current !== image) return;
+    setCrops((current) => ({ ...current, ...result.images }));
+    // One "no face" answer is enough to warn.
+    if (result.faceDetected !== undefined) setFaceDetected((current) => (current === false ? false : result.faceDetected));
+  };
+
+  // Look up every offered model's crop in one call. Lookups are cheap, and switching
+  // models then shows a cached crop straight away.
   useEffect(() => {
-    if (!variantsOn || !agentImageUrl || cached) return;
-    let cancelled = false;
+    if (!variantsOn || !agentImageUrl) return;
+    const controller = new AbortController();
+    const image = agentImageUrl;
+    fetchCrops(image, cropsForModels(modelIds), false, controller.signal)
+      .then((result) => keepCrops(image, result))
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || imageRef.current !== image) return;
+        setCrops((current) => current ?? {});
+        setPrepareError(error instanceof Error ? error.message : PREPARE_FAILED_MESSAGE);
+      });
+    return () => controller.abort();
+  }, [variantsOn, agentImageUrl, modelIds.join(",")]);
+
+  // Generate only the selected model's crop, once the lookup has said it is missing. A model
+  // switch doesn't cancel a generation, so switching back waits for it instead of asking again.
+  const lookedUp = crops !== undefined;
+  const preparedImage = crops?.[crop];
+  const generating = useRef<{ image?: string; crops: Set<string> }>({ crops: new Set() });
+  useEffect(() => {
+    if (!variantsOn || !agentImageUrl || !lookedUp || preparedImage) return;
+    if (generating.current.image !== agentImageUrl) generating.current = { image: agentImageUrl, crops: new Set() };
+    const inFlight = generating.current.crops;
+    if (inFlight.has(crop)) return;
+    inFlight.add(crop);
+    const image = agentImageUrl;
     setPrepareError(null);
-    loadAvatarVariants(agentImageUrl, modelIds, (found) => {
-      if (!cancelled) setVariants(found);
-    })
-      .then((images) => {
-        if (!cancelled) setVariants(images);
+    fetchCrops(image, [crop], true)
+      .then((result) => {
+        if (imageRef.current !== image) return;
+        keepCrops(image, result);
+        if (!result.images[crop]) setPrepareError(PREPARE_FAILED_MESSAGE);
       })
       .catch((error: unknown) => {
-        if (cancelled) return;
-        setVariants((current) => current ?? {});
-        setPrepareError(error instanceof Error ? error.message : "Could not prepare the avatar");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [variantsOn, agentImageUrl, modelIds.join(","), prepareAttempt]);
+        if (imageRef.current !== image) return;
+        setPrepareError(error instanceof Error ? error.message : PREPARE_FAILED_MESSAGE);
+      })
+      .finally(() => inFlight.delete(crop));
+  }, [variantsOn, agentImageUrl, lookedUp, crop, prepareAttempt]);
 
   useEffect(() => {
     if (call.status !== "ended" && call.status !== "error") {
@@ -186,9 +226,8 @@ export function LemonSliceCall({
     call.onError(error);
   };
 
-  const preparedImage = variants?.[videoModel === "roleplay" ? "bust" : "portrait"];
   // Hold the original photo until the lookup answers, so a cached crop never swaps in after it.
-  const imagePending = variantsOn && variants === undefined;
+  const imagePending = variantsOn && crops === undefined;
   const previewImage = preparedImage ?? (imagePending ? undefined : agentImageUrl);
   const preparing = startRequested && !preparedImage && !prepareError;
   const composer = <Composer disabled className={narrow ? "flex-1" : "w-full"} onSend={() => {}} />;
@@ -281,6 +320,7 @@ export function LemonSliceCall({
                       model={videoModel}
                       modelOptions={modelOptions}
                       errorMessage={(startRequested ? prepareError : null) ?? call.errorMessage}
+                      warningMessage={faceDetected === false ? NO_FACE_MESSAGE : null}
                       onVoiceChange={setVoiceId}
                       onModelChange={setVideoModel}
                     />

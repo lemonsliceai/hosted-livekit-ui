@@ -99,6 +99,7 @@ export function PreCallSetup({
   model,
   modelOptions,
   errorMessage,
+  warningMessage = null,
   onVoiceChange,
   onModelChange,
 }: {
@@ -109,6 +110,8 @@ export function PreCallSetup({
   /** From `resolveVideoModels`. The dropdown is hidden when there is only one. */
   modelOptions: SelectOption<LemonSliceVideoModel>[];
   errorMessage: string | null;
+  /** Shown under the controls when there is no error, e.g. when the photo has no face. */
+  warningMessage?: string | null;
   onVoiceChange: (voiceId: string) => void;
   onModelChange: (model: LemonSliceVideoModel) => void;
 }) {
@@ -162,7 +165,11 @@ export function PreCallSetup({
           <Select label="Video model" value={model} options={modelOptions} onChange={onModelChange} />
         )}
       </div>
-      {errorMessage && <p className="ls-error self-center">{errorMessage}</p>}
+      {errorMessage ? (
+        <p className="ls-error self-center">{errorMessage}</p>
+      ) : (
+        warningMessage && <p className="ls-warning self-center">{warningMessage}</p>
+      )}
     </div>
   );
 }
