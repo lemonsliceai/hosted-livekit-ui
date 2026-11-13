@@ -5,7 +5,7 @@ import { AgentImage } from "./AvatarStage";
 
 const MIN_SHEET = 0.32;
 const MAX_SHEET = 0.82;
-const CARD_RATIO = 389 / 584;
+const CARD_RATIO = 416 / 672;
 /** Voice row: 20px label + 6px gap + 40px select. Taller than the call buttons. */
 const TOOLBAR_SLOT = 66;
 
@@ -29,7 +29,8 @@ function useCardSize(
       const padY = mode === "centered" ? 80 : mode === "pinned" ? 44 : 0;
       const gap = mode === "centered" ? 24 : 0;
       const toolbar = mode === "sheet" ? 0 : (toolbarRef.current?.offsetHeight ?? 0);
-      const maxW = Math.min(389, Math.max(0, slot.clientWidth - padX));
+      // Grow with the stage. Padding, the toolbar, and the portrait ratio are the limits.
+      const maxW = Math.max(0, slot.clientWidth - padX);
       const maxH = Math.max(96, slot.clientHeight - padY - toolbar - gap);
       let width = maxW;
       let height = width / CARD_RATIO;
