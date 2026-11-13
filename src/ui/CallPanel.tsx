@@ -13,7 +13,7 @@ import { AvatarStage } from "./AvatarStage";
 import { useIdleCountdown } from "./useIdleCountdown";
 import { useTranscript, type TranscriptMessage } from "./useTranscript";
 
-/** Worker → page. A scene clip that is done names the image she is on now. */
+/** Worker → page: busy/idle as an action starts and ends; a done scene clip's new image. */
 const AGENT_EVENTS_TOPIC = "agent/events";
 /** Page → worker: a scene pill was tapped. Sent just before the pill's text goes as a typed line. */
 const SCENE_REQUEST_TOPIC = "ls.scene-request";
@@ -75,6 +75,7 @@ export function CallPanel({
   const idleSeconds = useIdleCountdown(onEnd);
   const caption = useSpokenCaption(transcript.messages, captions && !transcriptOpen);
   const sceneImage = useSceneImage(room, portraitImage, sessionId);
+  const actionBusy = useActionBusy(room, sessionId);
   // A pill with `turns` leaves after that many visitor messages (spoken, typed, or a tapped
   // pill). The pill for the image she is on is hidden.
   const visitorTurns = transcript.messages.filter((message) => message.role === "user" && message.text.trim()).length;
@@ -88,7 +89,6 @@ export function CallPanel({
     const text = pill.label.trim();
     if (pill.image) {
       // The request first, then the line it announces; both ride the same reliable channel.
-      // One action at a time on the agent: tapped during another action, this is answered, not done.
       const request = { type: "scene", text, image: pill.image, ...(pill.prompt ? { prompt: pill.prompt } : {}) };
       await room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify(request)), {
         reliable: true,
@@ -133,6 +133,7 @@ export function CallPanel({
               pills.length > 0 && avatarTrack ? (
                 <SuggestionChips
                   pills={pills}
+                  disabled={actionBusy}
                   onSelect={(pill) => {
                     void select(pill).catch((error: unknown) => {
                       console.error("[lemonslice] could not send the message:", error);
@@ -172,6 +173,36 @@ export function CallPanel({
       <RoomAudioRenderer />
     </>
   );
+}
+
+/** Whether an action is in flight on the agent. */
+function useActionBusy(room: Room, sessionId: string | null) {
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setBusy(false);
+  }, [sessionId]);
+
+  useEffect(() => {
+    const onData = (payload: Uint8Array, _participant: Participant | undefined, _kind: unknown, topic?: string) => {
+      if (topic !== AGENT_EVENTS_TOPIC) return;
+      let data: { type?: unknown; status?: unknown };
+      try {
+        data = JSON.parse(new TextDecoder().decode(payload)) as typeof data;
+      } catch {
+        return;
+      }
+      if (data.type !== "action") return;
+      if (data.status === "busy") setBusy(true);
+      else if (data.status === "idle") setBusy(false);
+    };
+    room.on(RoomEvent.DataReceived, onData);
+    return () => {
+      room.off(RoomEvent.DataReceived, onData);
+    };
+  }, [room]);
+
+  return busy;
 }
 
 /** The image she is on: the call's first one, then each finished scene clip's end frame. */

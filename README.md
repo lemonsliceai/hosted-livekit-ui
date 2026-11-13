@@ -350,7 +350,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `glint` | Sparkles in front of the portrait. Off by default. |
 | `edgeFade` | Dissolves the frame into the backdrop. Off by default. |
 | `captions` | Shows what the visitor is saying on the video while the transcript is closed. On by default. |
-| `suggestions` | Optional. Roleplay only. Pills on the video once it is live; omit for none. A string, or `{ label, turns?, image?, prompt? }`: `turns` hides the pill after that many visitor messages (omit to keep it); `image` makes it a scene change ending on that public `https://` image, which then stays as the reference; `prompt` replaces the default scene clip prompt. The pill for the current image is hidden. A pill tapped while another action is in flight is answered but not performed. |
+| `suggestions` | Optional. Roleplay only. Pills on the video once it is live; omit for none. A string, or `{ label, turns?, image?, prompt? }`: `turns` hides the pill after that many visitor messages (omit to keep it); `image` makes it a scene change ending on that public `https://` image, which then stays as the reference; `prompt` replaces the default scene clip prompt. The pill for the current image is hidden, and all pills are disabled while an action is in flight. |
 | `avatarVariants` | Optional. Re-frames the portrait for the video model, once per image, then cached. On by default; `false` uses the image as is. |
 | `className` | Optional, for positioning. |
 
