@@ -42,8 +42,6 @@ export type LemonSliceCallProps = {
   startCallUrl: string;
   /** Portrait shown before the avatar video arrives, and as the glow behind the stage. */
   agentImageUrl?: string;
-  /** @deprecated No longer needed. Suggested shows the room's voice. */
-  suggestedVoiceId?: string;
   /**
    * Video models offered, in dropdown order. The first is selected by default.
    * Each entry is an id (`"standard"`, `"premium"`) or an object with that id plus
@@ -82,7 +80,6 @@ export type LemonSliceCallProps = {
 export function LemonSliceCall({
   startCallUrl,
   agentImageUrl,
-  suggestedVoiceId,
   models,
   theme = "system",
   drift = false,
@@ -359,7 +356,7 @@ export function LemonSliceCall({
                   toolbar: configuring ? (
                     <PreCallSetup
                       voiceId={voiceId}
-                      suggestedVoiceId={serverVoice ?? (suggestedVoiceId?.trim() || undefined)}
+                      suggestedVoiceId={serverVoice ?? undefined}
                       model={videoModel}
                       modelOptions={modelOptions}
                       errorMessage={(startRequested ? prepareError : null) ?? call.errorMessage}
