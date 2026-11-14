@@ -350,7 +350,6 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `startCallUrl` | Your start-call endpoint from step 4. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
-| `suggestedVoiceId` | Deprecated, no longer needed. The call setup asks your start-call route for the **Suggested** voice. |
 | `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description? }`. Defaults to `["standard", "premium"]`. |
 | `theme` | `system` (default), `light`, or `dark`. |
 | `drift` | Slow float of the portrait. Off by default. |
