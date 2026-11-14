@@ -2,13 +2,12 @@ export async function fetchSuggestedVoice(
   startCallUrl: string,
   imageUrl: string | undefined,
   generate: boolean,
-  signal?: AbortSignal,
 ): Promise<string | null> {
   const response = await fetch(startCallUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ suggested_voice: true, generate, ...(imageUrl ? { agent_image_url: imageUrl } : {}) }),
-    signal,
+    signal: AbortSignal.timeout(30_000),
   });
   const payload = (await response.json().catch(() => null)) as { voice_id?: unknown } | null;
   if (!response.ok) return null;
