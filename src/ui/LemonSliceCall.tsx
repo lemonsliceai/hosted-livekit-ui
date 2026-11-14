@@ -115,8 +115,6 @@ export function LemonSliceCall({
   // Crops found or made for this photo. undefined until the first lookup answers.
   const [crops, setCrops] = useState<Record<string, string> | undefined>(undefined);
   const [faceDetected, setFaceDetected] = useState<boolean | undefined>(undefined);
-  const [serverVoice, setServerVoice] = useState<string | null | undefined>(undefined);
-  const [needsMatch, setNeedsMatch] = useState(false);
   const [variantImage, setVariantImage] = useState(agentImageUrl);
   // Crops belong to one photo. Drop them in this render when the photo changes, before paint.
   if (variantImage !== agentImageUrl) {
@@ -124,8 +122,6 @@ export function LemonSliceCall({
     setCrops(undefined);
     setFaceDetected(undefined);
     setPrepareError(null);
-    setServerVoice(undefined);
-    setNeedsMatch(false);
   }
   onEndedRef.current = onEnded;
 
@@ -184,35 +180,39 @@ export function LemonSliceCall({
       .finally(() => inFlight.delete(crop));
   }, [variantsOn, agentImageUrl, lookedUp, crop, prepareAttempt]);
 
-  // With crops on, a new image's voice is matched on its first crop.
-  const voiceAsked = useRef<string | undefined>(undefined);
+  // Suggested's voice for these inputs; undefined until known. With crops on, a new image's
+  // voice is matched on its first crop.
+  const voiceKey = `${agentImageUrl ?? ""}|${variantsOn}|${startCallUrl}`;
+  const [voice, setVoice] = useState<{ key: string; id: string | null; needsMatch: boolean }>();
+  const currentVoice = voice?.key === voiceKey ? voice : undefined;
+  const serverVoice = currentVoice?.needsMatch ? undefined : currentVoice?.id;
+
   useEffect(() => {
-    const key = agentImageUrl ?? "";
-    if (voiceAsked.current === key) return;
-    voiceAsked.current = key;
-    const image = agentImageUrl;
-    fetchSuggestedVoice(startCallUrl, image, !variantsOn)
+    let cancelled = false;
+    fetchSuggestedVoice(startCallUrl, agentImageUrl, !variantsOn)
       .catch(() => null)
-      .then((voice) => {
-        if (imageRef.current !== image) return;
-        if (voice || !variantsOn) setServerVoice(voice);
-        else setNeedsMatch(true);
+      .then((id) => {
+        if (!cancelled) setVoice({ key: voiceKey, id, needsMatch: !id && variantsOn });
       });
-  }, [agentImageUrl, startCallUrl, variantsOn]);
+    return () => {
+      cancelled = true;
+    };
+  }, [voiceKey]);
 
   const firstCrop = preparedImage ?? (crops ? Object.values(crops)[0] : undefined);
-  const matchImage = needsMatch ? (firstCrop ?? (prepareError ? agentImageUrl : undefined)) : undefined;
-  const voiceMatched = useRef<string | undefined>(undefined);
+  const matchImage = currentVoice?.needsMatch ? (firstCrop ?? (prepareError ? agentImageUrl : undefined)) : undefined;
   useEffect(() => {
-    if (!matchImage || !agentImageUrl || voiceMatched.current === agentImageUrl) return;
-    voiceMatched.current = agentImageUrl;
-    const image = agentImageUrl;
+    if (!matchImage) return;
+    let cancelled = false;
     fetchSuggestedVoice(startCallUrl, matchImage, true)
       .catch(() => null)
-      .then((voice) => {
-        if (imageRef.current === image) setServerVoice(voice);
+      .then((id) => {
+        if (!cancelled) setVoice({ key: voiceKey, id, needsMatch: false });
       });
-  }, [matchImage, agentImageUrl, startCallUrl]);
+    return () => {
+      cancelled = true;
+    };
+  }, [voiceKey, matchImage]);
 
   useEffect(() => {
     if (call.status !== "ended" && call.status !== "error") {
