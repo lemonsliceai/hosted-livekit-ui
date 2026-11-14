@@ -4,7 +4,6 @@ import type { AgentOverrides } from "@lemonslice/hosted-call/server";
 
 // Public PNG/JPG of the character, used as the reference image for the video.
 export const AGENT_IMAGE_URL =
-  // "https://6ammc3n5zzf5ljnz.public.blob.vercel-storage.com/inf2-image-uploads/image-GWtrBABzAKQUQW1END8bNe8ohJwkvQ.png";
   "https://6ammc3n5zzf5ljnz.public.blob.vercel-storage.com/inf2-image-uploads/resized-image-orsA8CUF0pqvxKNbQAOs1kzxipu77X.jpg";
 
 
