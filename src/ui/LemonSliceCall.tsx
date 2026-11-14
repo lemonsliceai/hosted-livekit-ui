@@ -17,6 +17,7 @@ import {
   type LemonSliceVideoModelInput,
 } from "./PreCallSetup";
 import { cropForModel, cropsForModels, fetchCrops, type CropResult } from "./avatarVariant";
+import { PrepDotMatrix } from "./PrepDotMatrix";
 
 const NARROW_BELOW = 880;
 const MIC_BLOCKED_MESSAGE = "Microphone access was blocked. Allow it for your browser, then try again.";
@@ -70,7 +71,7 @@ export type LemonSliceCallProps = {
   /**
    * Crops prepare in the background through `/api/lemonslice/avatar-variant`. A base model uses
    * the portrait crop and roleplay uses the bust crop. Every offered model's crop is looked up,
-   * and only the selected one is generated. The preparing pill shows after
+   * and only the selected one is generated. The preparing screen shows after
    * Start, and only when that crop is not ready yet. Set false to skip crop prep.
    */
   avatarVariants?: boolean;
@@ -302,8 +303,13 @@ export function LemonSliceCall({
                   overlay: configuring ? (
                     preparing ? (
                       <div className="ls-preparing" role="status">
-                        <span className="ls-preparing-fill" />
-                        <span className="ls-preparing-label">Preparing avatar</span>
+                        {previewImage ? <img src={previewImage} alt="" className="ls-preparing-photo" /> : null}
+                        <div className="ls-preparing-veil" aria-hidden />
+                        <PrepDotMatrix />
+                        <div className="ls-preparing-copy">
+                          <p className="ls-preparing-title">Preparing the avatar</p>
+                          <p>Just a moment– we're setting up the avatar for your call.</p>
+                        </div>
                       </div>
                     ) : startRequested && prepareError ? (
                       <button type="button" className="ls-precall-start" onClick={() => setPrepareAttempt((attempt) => attempt + 1)}>
