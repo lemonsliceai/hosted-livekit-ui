@@ -16,8 +16,11 @@ export type AgentOverrides = {
 export type AvatarConfig = {
   /** System instructions for the avatar. Max 40000 characters. */
   prompt: string;
-  /** Fish Audio voice ID. */
-  voiceId: string;
+  /**
+   * Fish Audio voice ID. Leave it out to have LemonSlice match a voice to the avatar image;
+   * the same image keeps the same voice.
+   */
+  voiceId?: string;
   /** Public image URL. */
   agentImageUrl: string;
   /** Overrides the handler's `webhookUrl` for this visitor. */
@@ -73,10 +76,15 @@ export type CreateRoomHandlerOptions = {
    * Set from `LEMONSLICE_LIVEKIT_AGENT_NAME`. Omitted when empty.
    */
   livekitAgentNameOverride?: string;
+  /** Voice-match endpoint. Defaults to `/hosted-voice-match` next to `/rooms` in `lemonSliceUrl`. */
+  voiceMatchUrl?: string;
 };
 
 /**
  * Builds a Next.js App Router route handler that creates a LemonSlice room.
+ *
+ * The call setup also asks it which voice **Suggested** is, before the call: the room's
+ * `voiceId`, or the voice LemonSlice matched to the avatar image when there is none.
  *
  * ```ts
  * // app/api/lemonslice/start-call/route.ts
@@ -95,7 +103,9 @@ export function createRoomHandler({
   room,
   authorize,
   livekitAgentNameOverride,
+  voiceMatchUrl,
 }: CreateRoomHandlerOptions) {
+  const matchUrl = voiceMatchUrl || lemonSliceUrl.replace(/\/rooms\/?$/, "/hosted-voice-match");
   return async function handleCreateRoom(request: Request): Promise<Response> {
     const browser = (await request
       .clone()
@@ -105,6 +115,8 @@ export function createRoomHandler({
       voice_id?: unknown;
       model?: unknown;
       agent_image_url?: unknown;
+      suggested_voice?: unknown;
+      generate?: unknown;
     };
     const supportsVp9 = browser?.supports_vp9 === true;
     const requestedVoiceId =
@@ -125,8 +137,20 @@ export function createRoomHandler({
     }
 
     const config = typeof room === "function" ? await room(request) : room;
-    const { prompt, voiceId: suggestedVoiceId, agentImageUrl } = config;
-    const voiceId = requestedVoiceId ?? suggestedVoiceId;
+    const { prompt, agentImageUrl } = config;
+    const configuredVoiceId =
+      typeof config.voiceId === "string" && config.voiceId.trim() ? config.voiceId.trim() : null;
+
+    // The call setup asking which voice Suggested is. No room is created.
+    if (browser?.suggested_voice === true) {
+      if (configuredVoiceId) return Response.json({ voice_id: configuredVoiceId });
+      const imageUrl = requestedImageUrl ?? httpsImageUrl(agentImageUrl);
+      if (!imageUrl) return Response.json({ voice_id: null });
+      return Response.json({ voice_id: await matchedVoice(apiKey, matchUrl, imageUrl, browser.generate !== false) });
+    }
+
+    // Without a voice from the visitor or the config, LemonSlice matches one to the image.
+    const voiceId = requestedVoiceId ?? configuredVoiceId ?? undefined;
     const sessionWebhookUrl = config.webhookUrl ?? webhookUrl;
     const agentNameOverride = livekitAgentNameOverride?.trim();
     const overrides = agentOverridesBody(config.agentOverrides);
@@ -164,6 +188,26 @@ export function createRoomHandler({
     const { room_url, token, session_id } = payload as Record<string, unknown>;
     return Response.json({ room_url, token, session_id }, { status: upstream.status });
   };
+}
+
+/**
+ * The voice LemonSlice matched to the image (the one a room without a voice ID gets), or
+ * null. `generate: false` only looks it up; true matches one if the image has none.
+ */
+async function matchedVoice(apiKey: string, url: string, imageUrl: string, generate: boolean): Promise<string | null> {
+  try {
+    const upstream = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+      body: JSON.stringify({ image_url: imageUrl, generate }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    const payload = (await upstream.json().catch(() => null)) as { voice_id?: unknown } | null;
+    return upstream.ok && typeof payload?.voice_id === "string" && payload.voice_id ? payload.voice_id : null;
+  } catch (error) {
+    console.error("[lemonslice] voice match unreachable:", error);
+    return null;
+  }
 }
 
 export { createAvatarVariantHandler, type CreateAvatarVariantHandlerOptions } from "./avatar-variant";

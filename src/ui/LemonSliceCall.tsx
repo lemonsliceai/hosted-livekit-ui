@@ -17,6 +17,7 @@ import {
   type LemonSliceVideoModelInput,
 } from "./PreCallSetup";
 import { cropForModel, cropsForModels, fetchCrops, type CropResult } from "./avatarVariant";
+import { fetchSuggestedVoice } from "./voiceMatch";
 
 const NARROW_BELOW = 880;
 const MIC_BLOCKED_MESSAGE = "Microphone access was blocked. Allow it for your browser, then try again.";
@@ -40,7 +41,11 @@ export type LemonSliceCallProps = {
   startCallUrl: string;
   /** Portrait shown before the avatar video arrives, and as the glow behind the stage. */
   agentImageUrl?: string;
-  /** Fish Audio voice the server uses for Suggested. When it matches a listed voice, that row is labeled with the voice name. */
+  /**
+   * @deprecated No longer needed: the call setup asks `startCallUrl` which voice Suggested is
+   * (the room's `voiceId`, or the voice LemonSlice matched to the image). Only labels
+   * Suggested until that answer arrives.
+   */
   suggestedVoiceId?: string;
   /**
    * Video models offered, in dropdown order. The first is selected by default.
@@ -116,13 +121,20 @@ export function LemonSliceCall({
   // Crops found or made for this photo. undefined until the first lookup answers.
   const [crops, setCrops] = useState<Record<string, string> | undefined>(undefined);
   const [faceDetected, setFaceDetected] = useState<boolean | undefined>(undefined);
+  // The voice Suggested is, from the start-call route: undefined while it is determined, null
+  // when there is none. needsMatch: the lookup found none, so it is matched on the first crop.
+  const [serverVoice, setServerVoice] = useState<string | null | undefined>(undefined);
+  const [needsMatch, setNeedsMatch] = useState(false);
   const [variantImage, setVariantImage] = useState(agentImageUrl);
-  // Crops belong to one photo. Drop them in this render when the photo changes, before paint.
+  // Crops and the matched voice belong to one photo. Drop them in this render when the photo
+  // changes, before paint.
   if (variantImage !== agentImageUrl) {
     setVariantImage(agentImageUrl);
     setCrops(undefined);
     setFaceDetected(undefined);
     setPrepareError(null);
+    setServerVoice(undefined);
+    setNeedsMatch(false);
   }
   onEndedRef.current = onEnded;
 
@@ -181,6 +193,40 @@ export function LemonSliceCall({
       .finally(() => inFlight.delete(crop));
   }, [variantsOn, agentImageUrl, lookedUp, crop, prepareAttempt]);
 
+  // Which voice Suggested is. The route answers with the room's voiceId when it has one, else
+  // the voice LemonSlice matched to the image. With crops on, the first ask only looks the match
+  // up; a new image is matched once its first crop exists (a cleaner image to match). With
+  // crops off it is matched on the photo straight away. LemonSlice keeps the match per photo,
+  // so the room gets this same voice.
+  const voiceAsked = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const key = agentImageUrl ?? "";
+    if (voiceAsked.current === key) return;
+    voiceAsked.current = key;
+    const image = agentImageUrl;
+    fetchSuggestedVoice(startCallUrl, image, !variantsOn)
+      .catch(() => null)
+      .then((voice) => {
+        if (imageRef.current !== image) return;
+        if (voice || !variantsOn) setServerVoice(voice);
+        else setNeedsMatch(true);
+      });
+  }, [agentImageUrl, startCallUrl, variantsOn]);
+
+  const firstCrop = preparedImage ?? (crops ? Object.values(crops)[0] : undefined);
+  const matchImage = needsMatch ? (firstCrop ?? (prepareError ? agentImageUrl : undefined)) : undefined;
+  const voiceMatched = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!matchImage || !agentImageUrl || voiceMatched.current === agentImageUrl) return;
+    voiceMatched.current = agentImageUrl;
+    const image = agentImageUrl;
+    fetchSuggestedVoice(startCallUrl, matchImage, true)
+      .catch(() => null)
+      .then((voice) => {
+        if (imageRef.current === image) setServerVoice(voice);
+      });
+  }, [matchImage, agentImageUrl, startCallUrl]);
+
   useEffect(() => {
     if (call.status !== "ended" && call.status !== "error") {
       return;
@@ -229,20 +275,24 @@ export function LemonSliceCall({
   // Hold the original photo until the lookup answers, so a cached crop never swaps in after it.
   const imagePending = variantsOn && crops === undefined;
   const previewImage = preparedImage ?? (imagePending ? undefined : agentImageUrl);
-  const preparing = startRequested && !preparedImage && !prepareError;
+  // Suggested waits for its voice, like the crop, so the call has the voice it showed.
+  const voicePending = voiceId === "" && serverVoice === undefined;
+  const cropReady = !variantsOn || Boolean(preparedImage);
+  const preparing = startRequested && ((!cropReady && !prepareError) || (voicePending && !(variantsOn && prepareError)));
   const composer = <Composer disabled className={narrow ? "flex-1" : "w-full"} onSend={() => {}} />;
   const beginCall = (imageUrl: string | undefined) => {
     setStartRequested(false);
     setStarted(true);
     setTranscriptOpen(false);
     call.start({
+      // Suggested sends no voice: the route uses the room's voiceId, or the same matched voice.
       ...(voiceId ? { voiceId } : {}),
       model: VIDEO_MODEL_IDS[videoModel],
       ...(imageUrl ? { agentImageUrl: imageUrl } : {}),
     });
   };
   const start = () => {
-    if (!variantsOn || preparedImage) {
+    if (cropReady && !voicePending) {
       beginCall(preparedImage);
       return;
     }
@@ -256,10 +306,10 @@ export function LemonSliceCall({
       launchedRef.current = false;
       return;
     }
-    if (!preparedImage || launchedRef.current) return;
+    if (!cropReady || voicePending || launchedRef.current) return;
     launchedRef.current = true;
     beginCall(preparedImage);
-  }, [startRequested, preparedImage]);
+  }, [startRequested, cropReady, voicePending]);
 
   return (
     <div
@@ -316,7 +366,7 @@ export function LemonSliceCall({
                   toolbar: configuring ? (
                     <PreCallSetup
                       voiceId={voiceId}
-                      suggestedVoiceId={suggestedVoiceId}
+                      suggestedVoiceId={serverVoice ?? (suggestedVoiceId?.trim() || undefined)}
                       model={videoModel}
                       modelOptions={modelOptions}
                       errorMessage={(startRequested ? prepareError : null) ?? call.errorMessage}

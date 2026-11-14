@@ -153,7 +153,7 @@ If the application has no authentication and the desired page is intentionally p
 
 ### Visitor voice
 
-If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead of the configured `voiceId`. Choosing **Suggested** keeps the configured voice. When the room has a known voice id, pass that same id as `suggestedVoiceId` on `<LemonSliceCall>` so the Suggested row is labeled with the voice name when it matches a listed voice.
+**Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the avatar image and keeps it for that image. The call setup asks the start-call route which voice Suggested is and shows its name, so `suggestedVoiceId` is not needed. If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
 
 ## 4. Configure the avatar
 
@@ -180,7 +180,7 @@ Do not fabricate a production CDN URL. Keep the `voiceId` above unless the user 
 Supported room values are:
 
 - `prompt`: LLM prompt / knowledge base, maximum 40,000 characters.
-- `voiceId`: Fish Audio voice ID.
+- `voiceId`: Optional. Fish Audio voice ID. Leave it out to have LemonSlice pick a voice that fits the image.
 - `agentImageUrl`: public HTTPS avatar image.
 
 The room configuration can also be dynamic:
@@ -245,7 +245,7 @@ Use the SAME avatar image for the client-side `agentImageUrl` and the server-sid
 | `startCallUrl` | The application's start-call endpoint from step 3. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
-| `suggestedVoiceId` | Optional. The voice the room uses for **Suggested**; names that row when it matches a listed voice. |
+| `suggestedVoiceId` | Deprecated, no longer needed. The call setup asks the start-call route for the **Suggested** voice. |
 | `models` | Optional. Video models in dropdown order; the first is the default. Each entry is `"standard"` or `"premium"`, or `{ model, label?, description? }`. `description` is a short subtitle; the menu clips the rest. Repeats and unknown ids are dropped. One entry hides the dropdown. Omit it to offer Standard then Premium. |
 | `theme` | `"system"` (default), `"light"`, or `"dark"`. |
 | `drift` | Slow float of the portrait. Off by default. |

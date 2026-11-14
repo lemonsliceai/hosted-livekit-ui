@@ -209,14 +209,21 @@ room: async (request) => {
 | `/room` param | description |
 | --- | --- |
 | `prompt` | Prompt for the LLM to be used as the avatar's knowledge base. Max 40,000 characters. |
-| `voiceId` | Fish Audio voice ID. |
+| `voiceId` | Optional. Fish Audio voice ID. Leave it out to have LemonSlice pick a voice that fits the image. |
 | `agentImageUrl` | Public `https://` image of the avatar. |
 | `webhookUrl` | Optional. Overrides the handler's `webhookUrl` for this visitor. |
 | `agentOverrides` | Optional, Roleplay only. `actionDetectorPrompt`, `directorPrompt`, and `actionDescriptionSuffix`, each up to 40,000 characters. An empty string keeps the backend's default. |
 
-If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses
-that Fish Audio voice instead of the configured `voiceId`. Choosing **Suggested**
-keeps the configured voice.
+**Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the
+avatar image and keeps it, so the same image always gets the same voice. Either way, the call
+setup asks this route which voice it is and shows its name on **Suggested**. For a new image
+with crops on, the voice is picked from the re-framed portrait once it is ready, and **Start**
+waits for it the way it waits for the crop. If the visitor picks a voice other than
+**Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
+
+If you wrote your own start-call route instead of using `createRoomHandler`, answer a request
+whose body has `suggested_voice: true` with `{ "voice_id": null }` (or the avatar's voice ID)
+and do not create a room for it.
 
 ### Webhook events
 
@@ -343,7 +350,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `startCallUrl` | Your start-call endpoint from step 4. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
-| `suggestedVoiceId` | Optional. The voice your room uses for **Suggested**; names that row when it matches a listed voice. |
+| `suggestedVoiceId` | Deprecated, no longer needed. The call setup asks your start-call route for the **Suggested** voice. |
 | `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description? }`. Defaults to `["standard", "premium"]`. |
 | `theme` | `system` (default), `light`, or `dark`. |
 | `drift` | Slow float of the portrait. Off by default. |
