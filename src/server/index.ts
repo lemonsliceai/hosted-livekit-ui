@@ -16,10 +16,7 @@ export type AgentOverrides = {
 export type AvatarConfig = {
   /** System instructions for the avatar. Max 40000 characters. */
   prompt: string;
-  /**
-   * Fish Audio voice ID. Leave it out to have LemonSlice match a voice to the avatar image;
-   * the same image keeps the same voice.
-   */
+  /** Fish Audio voice ID. Omit to have LemonSlice pick one that fits the image. */
   voiceId?: string;
   /** Public image URL. */
   agentImageUrl: string;
@@ -76,15 +73,12 @@ export type CreateRoomHandlerOptions = {
    * Set from `LEMONSLICE_LIVEKIT_AGENT_NAME`. Omitted when empty.
    */
   livekitAgentNameOverride?: string;
-  /** Voice-match endpoint. Defaults to `/hosted-voice-match` next to `/rooms` in `lemonSliceUrl`. */
+  /** Defaults to `/hosted-voice-match` next to `/rooms` in `lemonSliceUrl`. */
   voiceMatchUrl?: string;
 };
 
 /**
  * Builds a Next.js App Router route handler that creates a LemonSlice room.
- *
- * The call setup also asks it which voice **Suggested** is, before the call: the room's
- * `voiceId`, or the voice LemonSlice matched to the avatar image when there is none.
  *
  * ```ts
  * // app/api/lemonslice/start-call/route.ts
@@ -141,7 +135,6 @@ export function createRoomHandler({
     const configuredVoiceId =
       typeof config.voiceId === "string" && config.voiceId.trim() ? config.voiceId.trim() : null;
 
-    // The call setup asking which voice Suggested is. No room is created.
     if (browser?.suggested_voice === true) {
       if (configuredVoiceId) return Response.json({ voice_id: configuredVoiceId });
       const imageUrl = requestedImageUrl ?? httpsImageUrl(agentImageUrl);
@@ -149,7 +142,6 @@ export function createRoomHandler({
       return Response.json({ voice_id: await matchedVoice(apiKey, matchUrl, imageUrl, browser.generate !== false) });
     }
 
-    // Without a voice from the visitor or the config, LemonSlice matches one to the image.
     const voiceId = requestedVoiceId ?? configuredVoiceId ?? undefined;
     const sessionWebhookUrl = config.webhookUrl ?? webhookUrl;
     const agentNameOverride = livekitAgentNameOverride?.trim();
@@ -190,10 +182,6 @@ export function createRoomHandler({
   };
 }
 
-/**
- * The voice LemonSlice matched to the image (the one a room without a voice ID gets), or
- * null. `generate: false` only looks it up; true matches one if the image has none.
- */
 async function matchedVoice(apiKey: string, url: string, imageUrl: string, generate: boolean): Promise<string | null> {
   try {
     const upstream = await fetch(url, {

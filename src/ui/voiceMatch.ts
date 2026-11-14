@@ -1,8 +1,3 @@
-/**
- * Asks your start-call route which voice Suggested is: the room's voiceId, or the voice
- * LemonSlice matched to the image when there is none. `generate: false` only looks the match
- * up; true matches one if the image has none. Null when there is none, or on any failure.
- */
 export async function fetchSuggestedVoice(
   startCallUrl: string,
   imageUrl: string | undefined,

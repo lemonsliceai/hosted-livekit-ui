@@ -42,11 +42,7 @@ export type LemonSliceCallProps = {
   startCallUrl: string;
   /** Portrait shown before the avatar video arrives, and as the glow behind the stage. */
   agentImageUrl?: string;
-  /**
-   * @deprecated No longer needed: the call setup asks `startCallUrl` which voice Suggested is
-   * (the room's `voiceId`, or the voice LemonSlice matched to the image). Only labels
-   * Suggested until that answer arrives.
-   */
+  /** @deprecated No longer needed. Suggested shows the room's voice. */
   suggestedVoiceId?: string;
   /**
    * Video models offered, in dropdown order. The first is selected by default.
@@ -122,13 +118,10 @@ export function LemonSliceCall({
   // Crops found or made for this photo. undefined until the first lookup answers.
   const [crops, setCrops] = useState<Record<string, string> | undefined>(undefined);
   const [faceDetected, setFaceDetected] = useState<boolean | undefined>(undefined);
-  // The voice Suggested is, from the start-call route: undefined while it is determined, null
-  // when there is none. needsMatch: the lookup found none, so it is matched on the first crop.
   const [serverVoice, setServerVoice] = useState<string | null | undefined>(undefined);
   const [needsMatch, setNeedsMatch] = useState(false);
   const [variantImage, setVariantImage] = useState(agentImageUrl);
-  // Crops and the matched voice belong to one photo. Drop them in this render when the photo
-  // changes, before paint.
+  // Crops belong to one photo. Drop them in this render when the photo changes, before paint.
   if (variantImage !== agentImageUrl) {
     setVariantImage(agentImageUrl);
     setCrops(undefined);
@@ -194,11 +187,7 @@ export function LemonSliceCall({
       .finally(() => inFlight.delete(crop));
   }, [variantsOn, agentImageUrl, lookedUp, crop, prepareAttempt]);
 
-  // Which voice Suggested is. The route answers with the room's voiceId when it has one, else
-  // the voice LemonSlice matched to the image. With crops on, the first ask only looks the match
-  // up; a new image is matched once its first crop exists (a cleaner image to match). With
-  // crops off it is matched on the photo straight away. LemonSlice keeps the match per photo,
-  // so the room gets this same voice.
+  // With crops on, a new image's voice is matched on its first crop.
   const voiceAsked = useRef<string | undefined>(undefined);
   useEffect(() => {
     const key = agentImageUrl ?? "";
@@ -276,7 +265,6 @@ export function LemonSliceCall({
   // Hold the original photo until the lookup answers, so a cached crop never swaps in after it.
   const imagePending = variantsOn && crops === undefined;
   const previewImage = preparedImage ?? (imagePending ? undefined : agentImageUrl);
-  // Suggested waits for its voice, like the crop, so the call has the voice it showed.
   const voicePending = voiceId === "" && serverVoice === undefined;
   const cropReady = !variantsOn || Boolean(preparedImage);
   const preparing = startRequested && ((!cropReady && !prepareError) || (voicePending && !(variantsOn && prepareError)));
@@ -286,7 +274,6 @@ export function LemonSliceCall({
     setStarted(true);
     setTranscriptOpen(false);
     call.start({
-      // Suggested sends no voice: the route uses the room's voiceId, or the same matched voice.
       ...(voiceId ? { voiceId } : {}),
       model: VIDEO_MODEL_IDS[videoModel],
       ...(imageUrl ? { agentImageUrl: imageUrl } : {}),

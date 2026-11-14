@@ -82,7 +82,6 @@ export function resolveVideoModels(
 
 /** When the configured voice is already in the list, Suggested takes its name and the duplicate row goes away. */
 function voiceOptions(suggestedVoiceId?: string): SelectOption<string>[] {
-  // The Suggested row's own value is "", so a blank id must not match it.
   const match = suggestedVoiceId ? VOICES.find((voice) => voice.value === suggestedVoiceId) : undefined;
   if (!match) return VOICES;
   return VOICES.flatMap((voice) => {
