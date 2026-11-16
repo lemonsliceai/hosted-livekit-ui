@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.4.0
 
 - `voiceId` on the room is optional. Leave it out to have LemonSlice pick a voice that fits the
   avatar image; the same image always gets the same voice.
