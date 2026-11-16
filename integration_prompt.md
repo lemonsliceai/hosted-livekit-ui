@@ -105,7 +105,7 @@ import { createRoomHandler } from "@your-org/hosted-lemonslice-call/server";
 The basic configuration is:
 
 ```ts
-export const POST = createRoomHandler({
+const handler = createRoomHandler({
   apiKey: process.env.LEMONSLICE_API_KEY!,
   lemonSliceUrl: process.env.LEMONSLICE_API_URL ?? "https://lemonslice.com/api/liveai/rooms",
 
@@ -118,13 +118,15 @@ export const POST = createRoomHandler({
     agentImageUrl: "https://cdn.example.com/avatar.png",
   },
 });
+
+export { handler as GET, handler as POST };
 ```
 
 However, adapt this implementation to the application's existing architecture.
 
-`createRoomHandler` returns `(request: Request) => Promise<Response>`. On the Next.js App Router, export that function as `POST`. On any other server, adapt it to the route style the app already uses. Do not reimplement the LemonSlice request, and do not change the app's framework so this route can exist.
+`createRoomHandler` returns `(request: Request) => Promise<Response>`. On the Next.js App Router, export that function as both `GET` and `POST`. On any other server, adapt it to the route style the app already uses. Do not reimplement the LemonSlice request, and do not change the app's framework so this route can exist.
 
-`startCallUrl` must be a path the browser can POST to. Include the app's existing API prefix or `basePath` when it has one.
+`startCallUrl` must be a path the browser can GET and POST. Include the app's existing API prefix or `basePath` when it has one.
 
 ### Authentication
 

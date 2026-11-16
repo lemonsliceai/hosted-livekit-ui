@@ -180,39 +180,25 @@ export function LemonSliceCall({
       .finally(() => inFlight.delete(crop));
   }, [variantsOn, agentImageUrl, lookedUp, crop, prepareAttempt]);
 
-  // Suggested's voice for these inputs; undefined until known. With crops on, a new image's
-  // voice is matched on its first crop.
+  // Suggested's voice, asked once the crop is known so a new image is matched on it.
   const voiceKey = `${agentImageUrl ?? ""}|${variantsOn}|${startCallUrl}`;
-  const [voice, setVoice] = useState<{ key: string; id: string | null; needsMatch: boolean }>();
-  const currentVoice = voice?.key === voiceKey ? voice : undefined;
-  const serverVoice = currentVoice?.needsMatch ? undefined : currentVoice?.id;
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchSuggestedVoice(startCallUrl, agentImageUrl, !variantsOn)
-      .catch(() => null)
-      .then((id) => {
-        if (!cancelled) setVoice({ key: voiceKey, id, needsMatch: !id && variantsOn });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [voiceKey]);
-
+  const [voice, setVoice] = useState<{ key: string; id: string | null }>();
+  const serverVoice = voice?.key === voiceKey ? voice.id : undefined;
   const firstCrop = preparedImage ?? (crops ? Object.values(crops)[0] : undefined);
-  const matchImage = currentVoice?.needsMatch ? (firstCrop ?? (prepareError ? agentImageUrl : undefined)) : undefined;
+  const voiceImage = variantsOn ? (firstCrop ?? (prepareError ? agentImageUrl : undefined)) : agentImageUrl;
+  const canAskVoice = !variantsOn || Boolean(voiceImage);
   useEffect(() => {
-    if (!matchImage) return;
+    if (!canAskVoice) return;
     let cancelled = false;
-    fetchSuggestedVoice(startCallUrl, matchImage, true)
+    fetchSuggestedVoice(startCallUrl, voiceImage)
       .catch(() => null)
       .then((id) => {
-        if (!cancelled) setVoice({ key: voiceKey, id, needsMatch: false });
+        if (!cancelled) setVoice({ key: voiceKey, id });
       });
     return () => {
       cancelled = true;
     };
-  }, [voiceKey, matchImage]);
+  }, [voiceKey, voiceImage, canAskVoice]);
 
   useEffect(() => {
     if (call.status !== "ended" && call.status !== "error") {

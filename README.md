@@ -165,7 +165,7 @@ Copy this from `example/app/api/lemonslice/start-call/route.ts`:
 import { createRoomHandler } from "@your-org/hosted-lemonslice-call/server";
 import { auth } from "@/lib/auth";
 
-export const POST = createRoomHandler({
+const handler = createRoomHandler({
   apiKey: process.env.LEMONSLICE_API_KEY!,
   lemonSliceUrl: process.env.LEMONSLICE_API_URL!,
 
@@ -195,6 +195,8 @@ export const POST = createRoomHandler({
     if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
   },
 });
+
+export { handler as GET, handler as POST };
 ```
 
 To vary the avatar per visitor, pass a function instead:
@@ -215,15 +217,10 @@ room: async (request) => {
 | `agentOverrides` | Optional, Roleplay only. `actionDetectorPrompt`, `directorPrompt`, and `actionDescriptionSuffix`, each up to 40,000 characters. An empty string keeps the backend's default. |
 
 **Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the
-avatar image and keeps it, so the same image always gets the same voice. Either way, the call
-setup asks this route which voice it is and shows its name on **Suggested**. For a new image
-with crops on, the voice is picked from the re-framed portrait once it is ready, and **Start**
-waits for it the way it waits for the crop. If the visitor picks a voice other than
-**Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
-
-If you wrote your own start-call route instead of using `createRoomHandler`, answer a request
-whose body has `suggested_voice: true` with `{ "voice_id": null }` (or the avatar's voice ID)
-and do not create a room for it.
+avatar image and keeps it, so the same image always gets the same voice. The call setup asks
+the route for that voice with a GET and shows its name on **Suggested**; without the `GET`
+export, Suggested shows no name. If the visitor picks a voice other than **Suggested**,
+`createRoomHandler` uses that Fish Audio voice instead.
 
 ### Webhook events
 

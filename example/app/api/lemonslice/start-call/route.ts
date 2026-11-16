@@ -5,7 +5,7 @@ import { AGENT_IMAGE_URL, AGENT_OVERRIDES, CHARACTER_PROMPT, VOICE_ID } from "..
 //
 // The session config is the constants in ../../../../call-config.ts.
 // Use `authorize` to check your own user session before letting a visitor start a call.
-export const POST = createRoomHandler({
+const handler = createRoomHandler({
   apiKey: process.env.LEMONSLICE_API_KEY ?? "",
   lemonSliceUrl: process.env.LEMONSLICE_API_URL ?? "https://lemonslice.com/api/liveai/rooms",
   room: { prompt: CHARACTER_PROMPT, voiceId: VOICE_ID, agentImageUrl: AGENT_IMAGE_URL, agentOverrides: AGENT_OVERRIDES },
@@ -19,3 +19,5 @@ export const POST = createRoomHandler({
   //   return { prompt: promptFor(user), voiceId: user.voiceId, agentImageUrl: user.imageUrl };
   // },
 });
+
+export { handler as GET, handler as POST };

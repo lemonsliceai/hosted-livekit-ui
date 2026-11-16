@@ -78,16 +78,18 @@ export type CreateRoomHandlerOptions = {
 };
 
 /**
- * Builds a Next.js App Router route handler that creates a LemonSlice room.
+ * Builds a Next.js App Router route handler. POST creates a LemonSlice room; GET returns the
+ * voice the call will use, for the call setup.
  *
  * ```ts
  * // app/api/lemonslice/start-call/route.ts
- * export const POST = createRoomHandler({
+ * const handler = createRoomHandler({
  *   apiKey: process.env.LEMONSLICE_API_KEY!,
  *   lemonSliceUrl: process.env.LEMONSLICE_API_URL!,
  *   livekitAgentNameOverride: process.env.LEMONSLICE_LIVEKIT_AGENT_NAME,
  *   room: { prompt: "...", voiceId: "...", agentImageUrl: "https://..." },
  * });
+ * export { handler as GET, handler as POST };
  * ```
  */
 export function createRoomHandler({
@@ -109,8 +111,6 @@ export function createRoomHandler({
       voice_id?: unknown;
       model?: unknown;
       agent_image_url?: unknown;
-      suggested_voice?: unknown;
-      generate?: unknown;
     };
     const supportsVp9 = browser?.supports_vp9 === true;
     const requestedVoiceId =
@@ -135,11 +135,11 @@ export function createRoomHandler({
     const configuredVoiceId =
       typeof config.voiceId === "string" && config.voiceId.trim() ? config.voiceId.trim() : null;
 
-    if (browser?.suggested_voice === true) {
+    if (request.method === "GET") {
       if (configuredVoiceId) return Response.json({ voice_id: configuredVoiceId });
-      const imageUrl = requestedImageUrl ?? httpsImageUrl(agentImageUrl);
-      if (!imageUrl) return Response.json({ voice_id: null });
-      return Response.json({ voice_id: await matchedVoice(apiKey, matchUrl, imageUrl, browser.generate !== false) });
+      const imageUrl =
+        httpsImageUrl(new URL(request.url).searchParams.get("image_url")) ?? httpsImageUrl(agentImageUrl);
+      return Response.json({ voice_id: imageUrl ? await matchedVoice(apiKey, matchUrl, imageUrl) : null });
     }
 
     const voiceId = requestedVoiceId ?? configuredVoiceId ?? undefined;
@@ -182,12 +182,12 @@ export function createRoomHandler({
   };
 }
 
-async function matchedVoice(apiKey: string, url: string, imageUrl: string, generate: boolean): Promise<string | null> {
+async function matchedVoice(apiKey: string, url: string, imageUrl: string): Promise<string | null> {
   try {
     const upstream = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
-      body: JSON.stringify({ image_url: imageUrl, generate }),
+      body: JSON.stringify({ image_url: imageUrl }),
       signal: AbortSignal.timeout(60_000),
     });
     const payload = (await upstream.json().catch(() => null)) as { voice_id?: unknown } | null;
