@@ -155,7 +155,7 @@ If the application has no authentication and the desired page is intentionally p
 
 ### Visitor voice
 
-**Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the avatar image and keeps it for that image. The call setup shows that voice's name on **Suggested**. If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
+**Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the avatar image and keeps it for that image. When it is a listed voice, the call setup shows its name on **Suggested**. If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
 
 ## 4. Configure the avatar
 

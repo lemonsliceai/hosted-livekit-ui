@@ -218,9 +218,9 @@ room: async (request) => {
 
 **Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the
 avatar image and keeps it, so the same image always gets the same voice. The call setup asks
-the route for that voice with a GET and shows its name on **Suggested**; without the `GET`
-export, Suggested shows no name. If the visitor picks a voice other than **Suggested**,
-`createRoomHandler` uses that Fish Audio voice instead.
+the route for that voice with a GET and, when it is a listed voice, shows its name on
+**Suggested**; without the `GET` export, Suggested shows no name. If the visitor picks a voice
+other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
 
 ### Webhook events
 
