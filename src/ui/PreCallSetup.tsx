@@ -82,7 +82,7 @@ export function resolveVideoModels(
 
 /** When the configured voice is already in the list, Suggested takes its name and the duplicate row goes away. */
 function voiceOptions(suggestedVoiceId?: string): SelectOption<string>[] {
-  const match = VOICES.find((voice) => voice.value === suggestedVoiceId);
+  const match = suggestedVoiceId ? VOICES.find((voice) => voice.value === suggestedVoiceId) : undefined;
   if (!match) return VOICES;
   return VOICES.flatMap((voice) => {
     if (voice.value === "") {
@@ -118,7 +118,7 @@ export function PreCallSetup({
   const preview = useVoicePreview();
   const options = voiceOptions(suggestedVoiceId);
   const showModels = modelOptions.length > 1;
-  const suggestedPreviewId = VOICES.some((voice) => voice.value === suggestedVoiceId)
+  const suggestedPreviewId = suggestedVoiceId && VOICES.some((voice) => voice.value === suggestedVoiceId)
     ? suggestedVoiceId
     : undefined;
 

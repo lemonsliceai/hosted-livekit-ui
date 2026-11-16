@@ -105,7 +105,7 @@ import { createRoomHandler } from "@your-org/hosted-lemonslice-call/server";
 The basic configuration is:
 
 ```ts
-export const POST = createRoomHandler({
+const handler = createRoomHandler({
   apiKey: process.env.LEMONSLICE_API_KEY!,
   lemonSliceUrl: process.env.LEMONSLICE_API_URL ?? "https://lemonslice.com/api/liveai/rooms",
 
@@ -118,13 +118,15 @@ export const POST = createRoomHandler({
     agentImageUrl: "https://cdn.example.com/avatar.png",
   },
 });
+
+export { handler as GET, handler as POST };
 ```
 
 However, adapt this implementation to the application's existing architecture.
 
-`createRoomHandler` returns `(request: Request) => Promise<Response>`. On the Next.js App Router, export that function as `POST`. On any other server, adapt it to the route style the app already uses. Do not reimplement the LemonSlice request, and do not change the app's framework so this route can exist.
+`createRoomHandler` returns `(request: Request) => Promise<Response>`. On the Next.js App Router, export that function as both `GET` and `POST`. On any other server, adapt it to the route style the app already uses. Do not reimplement the LemonSlice request, and do not change the app's framework so this route can exist.
 
-`startCallUrl` must be a path the browser can POST to. Include the app's existing API prefix or `basePath` when it has one.
+`startCallUrl` must be a path the browser can GET and POST. Include the app's existing API prefix or `basePath` when it has one.
 
 ### Authentication
 
@@ -153,7 +155,7 @@ If the application has no authentication and the desired page is intentionally p
 
 ### Visitor voice
 
-If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead of the configured `voiceId`. Choosing **Suggested** keeps the configured voice. When the room has a known voice id, pass that same id as `suggestedVoiceId` on `<LemonSliceCall>` so the Suggested row is labeled with the voice name when it matches a listed voice.
+**Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the avatar image and keeps it for that image. When it is a listed voice, the call setup shows its name on **Suggested**. If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
 
 ## 4. Configure the avatar
 
@@ -180,7 +182,7 @@ Do not fabricate a production CDN URL. Keep the `voiceId` above unless the user 
 Supported room values are:
 
 - `prompt`: LLM prompt / knowledge base, maximum 40,000 characters.
-- `voiceId`: Fish Audio voice ID.
+- `voiceId`: Optional. Fish Audio voice ID. Leave it out to have LemonSlice pick a voice that fits the image.
 - `agentImageUrl`: public HTTPS avatar image.
 
 The room configuration can also be dynamic:
@@ -245,7 +247,6 @@ Use the SAME avatar image for the client-side `agentImageUrl` and the server-sid
 | `startCallUrl` | The application's start-call endpoint from step 3. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
-| `suggestedVoiceId` | Optional. The voice the room uses for **Suggested**; names that row when it matches a listed voice. |
 | `models` | Optional. Video models in dropdown order; the first is the default. Each entry is `"standard"` or `"premium"`, or `{ model, label?, description? }`. `description` is a short subtitle; the menu clips the rest. Repeats and unknown ids are dropped. One entry hides the dropdown. Omit it to offer Standard then Premium. |
 | `theme` | `"system"` (default), `"light"`, or `"dark"`. |
 | `drift` | Slow float of the portrait. Off by default. |

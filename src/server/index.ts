@@ -16,8 +16,8 @@ export type AgentOverrides = {
 export type AvatarConfig = {
   /** System instructions for the avatar. Max 40000 characters. */
   prompt: string;
-  /** Fish Audio voice ID. */
-  voiceId: string;
+  /** Fish Audio voice ID. Omit to have LemonSlice pick one that fits the image. */
+  voiceId?: string;
   /** Public image URL. */
   agentImageUrl: string;
   /** Overrides the handler's `webhookUrl` for this visitor. */
@@ -73,19 +73,23 @@ export type CreateRoomHandlerOptions = {
    * Set from `LEMONSLICE_LIVEKIT_AGENT_NAME`. Omitted when empty.
    */
   livekitAgentNameOverride?: string;
+  /** Defaults to `/hosted-voice-match` next to `/rooms` in `lemonSliceUrl`. */
+  voiceMatchUrl?: string;
 };
 
 /**
- * Builds a Next.js App Router route handler that creates a LemonSlice room.
+ * Builds a Next.js App Router route handler. POST creates a LemonSlice room; GET returns the
+ * voice the call will use, for the call setup.
  *
  * ```ts
  * // app/api/lemonslice/start-call/route.ts
- * export const POST = createRoomHandler({
+ * const handler = createRoomHandler({
  *   apiKey: process.env.LEMONSLICE_API_KEY!,
  *   lemonSliceUrl: process.env.LEMONSLICE_API_URL!,
  *   livekitAgentNameOverride: process.env.LEMONSLICE_LIVEKIT_AGENT_NAME,
  *   room: { prompt: "...", voiceId: "...", agentImageUrl: "https://..." },
  * });
+ * export { handler as GET, handler as POST };
  * ```
  */
 export function createRoomHandler({
@@ -95,7 +99,9 @@ export function createRoomHandler({
   room,
   authorize,
   livekitAgentNameOverride,
+  voiceMatchUrl,
 }: CreateRoomHandlerOptions) {
+  const matchUrl = voiceMatchUrl || lemonSliceUrl.replace(/\/rooms\/?$/, "/hosted-voice-match");
   return async function handleCreateRoom(request: Request): Promise<Response> {
     const browser = (await request
       .clone()
@@ -125,8 +131,18 @@ export function createRoomHandler({
     }
 
     const config = typeof room === "function" ? await room(request) : room;
-    const { prompt, voiceId: suggestedVoiceId, agentImageUrl } = config;
-    const voiceId = requestedVoiceId ?? suggestedVoiceId;
+    const { prompt, agentImageUrl } = config;
+    const configuredVoiceId =
+      typeof config.voiceId === "string" && config.voiceId.trim() ? config.voiceId.trim() : null;
+
+    if (request.method === "GET") {
+      if (configuredVoiceId) return Response.json({ voice_id: configuredVoiceId });
+      const imageUrl =
+        httpsImageUrl(new URL(request.url).searchParams.get("image_url")) ?? httpsImageUrl(agentImageUrl);
+      return Response.json({ voice_id: imageUrl ? await matchedVoice(apiKey, matchUrl, imageUrl) : null });
+    }
+
+    const voiceId = requestedVoiceId ?? configuredVoiceId ?? undefined;
     const sessionWebhookUrl = config.webhookUrl ?? webhookUrl;
     const agentNameOverride = livekitAgentNameOverride?.trim();
     const overrides = agentOverridesBody(config.agentOverrides);
@@ -164,6 +180,22 @@ export function createRoomHandler({
     const { room_url, token, session_id } = payload as Record<string, unknown>;
     return Response.json({ room_url, token, session_id }, { status: upstream.status });
   };
+}
+
+async function matchedVoice(apiKey: string, url: string, imageUrl: string): Promise<string | null> {
+  try {
+    const upstream = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+      body: JSON.stringify({ image_url: imageUrl }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    const payload = (await upstream.json().catch(() => null)) as { voice_id?: unknown } | null;
+    return upstream.ok && typeof payload?.voice_id === "string" && payload.voice_id ? payload.voice_id : null;
+  } catch (error) {
+    console.error("[lemonslice] voice match unreachable:", error);
+    return null;
+  }
 }
 
 export { createAvatarVariantHandler, type CreateAvatarVariantHandlerOptions } from "./avatar-variant";

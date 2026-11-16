@@ -165,7 +165,7 @@ Copy this from `example/app/api/lemonslice/start-call/route.ts`:
 import { createRoomHandler } from "@your-org/hosted-lemonslice-call/server";
 import { auth } from "@/lib/auth";
 
-export const POST = createRoomHandler({
+const handler = createRoomHandler({
   apiKey: process.env.LEMONSLICE_API_KEY!,
   lemonSliceUrl: process.env.LEMONSLICE_API_URL!,
 
@@ -195,6 +195,8 @@ export const POST = createRoomHandler({
     if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
   },
 });
+
+export { handler as GET, handler as POST };
 ```
 
 To vary the avatar per visitor, pass a function instead:
@@ -209,14 +211,16 @@ room: async (request) => {
 | `/room` param | description |
 | --- | --- |
 | `prompt` | Prompt for the LLM to be used as the avatar's knowledge base. Max 40,000 characters. |
-| `voiceId` | Fish Audio voice ID. |
+| `voiceId` | Optional. Fish Audio voice ID. Leave it out to have LemonSlice pick a voice that fits the image. |
 | `agentImageUrl` | Public `https://` image of the avatar. |
 | `webhookUrl` | Optional. Overrides the handler's `webhookUrl` for this visitor. |
 | `agentOverrides` | Optional, Roleplay only. `actionDetectorPrompt`, `directorPrompt`, and `actionDescriptionSuffix`, each up to 40,000 characters. An empty string keeps the backend's default. |
 
-If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses
-that Fish Audio voice instead of the configured `voiceId`. Choosing **Suggested**
-keeps the configured voice.
+**Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the
+avatar image and keeps it, so the same image always gets the same voice. The call setup asks
+the route for that voice with a GET and, when it is a listed voice, shows its name on
+**Suggested**; without the `GET` export, Suggested shows no name. If the visitor picks a voice
+other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
 
 ### Webhook events
 
@@ -343,7 +347,6 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `startCallUrl` | Your start-call endpoint from step 4. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
-| `suggestedVoiceId` | Optional. The voice your room uses for **Suggested**; names that row when it matches a listed voice. |
 | `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description? }`. Defaults to `["standard", "premium"]`. |
 | `theme` | `system` (default), `light`, or `dark`. |
 | `drift` | Slow float of the portrait. Off by default. |

@@ -18,6 +18,7 @@ import {
 } from "./PreCallSetup";
 import { cropForModel, cropsForModels, fetchCrops, type CropResult } from "./avatarVariant";
 import { PrepDotMatrix } from "./PrepDotMatrix";
+import { fetchSuggestedVoice } from "./voiceMatch";
 
 const NARROW_BELOW = 880;
 const MIC_BLOCKED_MESSAGE = "Microphone access was blocked. Allow it for your browser, then try again.";
@@ -41,8 +42,6 @@ export type LemonSliceCallProps = {
   startCallUrl: string;
   /** Portrait shown before the avatar video arrives, and as the glow behind the stage. */
   agentImageUrl?: string;
-  /** Fish Audio voice the server uses for Suggested. When it matches a listed voice, that row is labeled with the voice name. */
-  suggestedVoiceId?: string;
   /**
    * Video models offered, in dropdown order. The first is selected by default.
    * Each entry is an id (`"standard"`, `"premium"`) or an object with that id plus
@@ -81,7 +80,6 @@ export type LemonSliceCallProps = {
 export function LemonSliceCall({
   startCallUrl,
   agentImageUrl,
-  suggestedVoiceId,
   models,
   theme = "system",
   drift = false,
@@ -182,6 +180,26 @@ export function LemonSliceCall({
       .finally(() => inFlight.delete(crop));
   }, [variantsOn, agentImageUrl, lookedUp, crop, prepareAttempt]);
 
+  // Suggested's voice, asked once the crop is known so a new image is matched on it.
+  const voiceKey = `${agentImageUrl ?? ""}|${variantsOn}|${startCallUrl}`;
+  const [voice, setVoice] = useState<{ key: string; id: string | null }>();
+  const serverVoice = voice?.key === voiceKey ? voice.id : undefined;
+  const firstCrop = preparedImage ?? (crops ? Object.values(crops)[0] : undefined);
+  const voiceImage = variantsOn ? (firstCrop ?? (prepareError ? agentImageUrl : undefined)) : agentImageUrl;
+  const canAskVoice = !variantsOn || Boolean(voiceImage);
+  useEffect(() => {
+    if (!canAskVoice) return;
+    let cancelled = false;
+    fetchSuggestedVoice(startCallUrl, voiceImage)
+      .catch(() => null)
+      .then((id) => {
+        if (!cancelled) setVoice({ key: voiceKey, id });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [voiceKey, voiceImage, canAskVoice]);
+
   useEffect(() => {
     if (call.status !== "ended" && call.status !== "error") {
       return;
@@ -230,7 +248,9 @@ export function LemonSliceCall({
   // Hold the original photo until the lookup answers, so a cached crop never swaps in after it.
   const imagePending = variantsOn && crops === undefined;
   const previewImage = preparedImage ?? (imagePending ? undefined : agentImageUrl);
-  const preparing = startRequested && !preparedImage && !prepareError;
+  const voicePending = voiceId === "" && serverVoice === undefined;
+  const cropReady = !variantsOn || Boolean(preparedImage);
+  const preparing = startRequested && ((!cropReady && !prepareError) || (voicePending && !(variantsOn && prepareError)));
   const composer = <Composer disabled className={narrow ? "flex-1" : "w-full"} onSend={() => {}} />;
   const beginCall = (imageUrl: string | undefined) => {
     setStartRequested(false);
@@ -243,7 +263,7 @@ export function LemonSliceCall({
     });
   };
   const start = () => {
-    if (!variantsOn || preparedImage) {
+    if (cropReady && !voicePending) {
       beginCall(preparedImage);
       return;
     }
@@ -257,10 +277,10 @@ export function LemonSliceCall({
       launchedRef.current = false;
       return;
     }
-    if (!preparedImage || launchedRef.current) return;
+    if (!cropReady || voicePending || launchedRef.current) return;
     launchedRef.current = true;
     beginCall(preparedImage);
-  }, [startRequested, preparedImage]);
+  }, [startRequested, cropReady, voicePending]);
 
   return (
     <div
@@ -322,7 +342,7 @@ export function LemonSliceCall({
                   toolbar: configuring ? (
                     <PreCallSetup
                       voiceId={voiceId}
-                      suggestedVoiceId={suggestedVoiceId}
+                      suggestedVoiceId={serverVoice ?? undefined}
                       model={videoModel}
                       modelOptions={modelOptions}
                       errorMessage={(startRequested ? prepareError : null) ?? call.errorMessage}
