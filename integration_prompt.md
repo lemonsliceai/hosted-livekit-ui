@@ -247,7 +247,7 @@ Use the SAME avatar image for the client-side `agentImageUrl` and the server-sid
 | `startCallUrl` | The application's start-call endpoint from step 3. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
-| `models` | Optional. Video models in dropdown order; the first is the default. Each entry is `"cwm-1-lite"`, `"cwm-1"`, or `"roleplay"`, or `{ model, label?, description?, transcriptOpen? }`. `description` is a short subtitle; the menu clips the rest. Repeats and unknown ids are dropped. One entry hides the dropdown. Omit it to offer FaceTime Lite then FaceTime. |
+| `models` | Optional. Video models in dropdown order; the first is the default. Each entry is `"standard"` or `"premium"`, or `{ model, label?, description? }`. `description` is a short subtitle; the menu clips the rest. Repeats and unknown ids are dropped. One entry hides the dropdown. Omit it to offer Standard then Premium. |
 | `theme` | `"system"` (default), `"light"`, or `"dark"`. |
 | `drift` | Slow float of the portrait. Off by default. |
 | `glint` | Sparkles in front of the portrait. Off by default. |

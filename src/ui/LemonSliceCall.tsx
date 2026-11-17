@@ -44,9 +44,9 @@ export type LemonSliceCallProps = {
   agentImageUrl?: string;
   /**
    * Video models offered, in dropdown order. The first is selected by default.
-   * Each entry is an id (`"cwm-1-lite"`, `"cwm-1"`, `"roleplay"`) or an object with that id
-   * plus an optional `label`, `description`, and `transcriptOpen`. Defaults to `cwm-1-lite`
-   * then `cwm-1`. One entry hides the dropdown.
+   * Each entry is an id (`"standard"`, `"premium"`) or an object with that id plus
+   * an optional `label` and `description`. Defaults to standard then premium.
+   * One entry hides the dropdown.
    */
   models?: readonly LemonSliceVideoModelInput[];
   /** `system` follows the visitor's OS appearance. */
@@ -255,7 +255,7 @@ export function LemonSliceCall({
     setTranscriptOpen(modelOption.transcriptOpen);
     call.start({
       ...(voiceId ? { voiceId } : {}),
-      model: videoModel,
+      model: VIDEO_MODELS[videoModel].id,
       ...(imageUrl ? { agentImageUrl: imageUrl } : {}),
     });
   };

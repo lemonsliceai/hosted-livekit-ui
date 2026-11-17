@@ -14,10 +14,11 @@ export default function Home() {
           <LemonSliceCall
             startCallUrl="/api/lemonslice/start-call"
             agentImageUrl={AGENT_IMAGE_URL}
-            // Dropdown order; the first row is selected by default. Roleplay has to be
-            // listed here to be shown as an option.
+            // Dropdown order; the first row is selected by default. The ids stay
+            // "premium" and "standard"; the ui displays them as FaceTime and
+            // FaceTime Lite.  Roleplay has to be listed here to be shown as an option.
             // For a subtitle, use { model: "roleplay", description: "..." } instead.
-            models={["roleplay", "cwm-1", "cwm-1-lite"]}
+            models={["roleplay", "premium", "standard"]}
             theme="dark"
             // UI effects.
             // drift: subtle movement of the video frame.

@@ -298,13 +298,13 @@ for each row.
   agentImageUrl="https://cdn.example.com/avatar.png"
   models={[
     "roleplay",
-    { model: "cwm-1", description: "Sharper video" },
-    "cwm-1-lite",
+    { model: "premium", description: "Sharper video" },
+    "standard",
   ]}
 />
 ```
 
-Each entry is an id (`"cwm-1-lite"`, `"cwm-1"`, or `"roleplay"`) or
+Each entry is an id (`"roleplay"`, `"premium"`, or `"standard"`) or
 `{ model, label?, description?, transcriptOpen? }`. Keep descriptions to a few words; the
 menu is narrow and clips the rest. Repeats and unknown ids are dropped. A single entry hides
 the dropdown. `transcriptOpen` sets whether the chat starts open; on for Roleplay only by default.
@@ -348,7 +348,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `startCallUrl` | Your start-call endpoint from step 4. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
-| `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description?, transcriptOpen? }`. Defaults to `["cwm-1-lite", "cwm-1"]`. |
+| `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description?, transcriptOpen? }`. Defaults to `["standard", "premium"]`. |
 | `theme` | `system` (default), `light`, or `dark`. |
 | `drift` | Slow float of the portrait. Off by default. |
 | `glint` | Sparkles in front of the portrait. Off by default. |
