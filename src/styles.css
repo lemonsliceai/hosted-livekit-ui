@@ -410,6 +410,14 @@
   line-height: 1.3;
 }
 
+.lemonslice-call .ls-preparing-copy .ls-preparing-hint {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.65);
+  animation: ls-fade-in-up 400ms ease-out;
+}
+
 .lemonslice-call .ls-calling {
   pointer-events: none;
   z-index: 3;

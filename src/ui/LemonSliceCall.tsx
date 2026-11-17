@@ -17,6 +17,7 @@ import {
 } from "./videoModels";
 import { cropForModel, cropsForModels, fetchCrops, type CropResult } from "./avatarVariant";
 import { PrepDotMatrix } from "./PrepDotMatrix";
+import { PreparingNotice } from "./PreparingNotice";
 import { fetchSuggestedVoice } from "./voiceMatch";
 
 const NARROW_BELOW = 880;
@@ -322,10 +323,7 @@ export function LemonSliceCall({
                         {previewImage ? <img src={previewImage} alt="" className="ls-preparing-photo" /> : null}
                         <div className="ls-preparing-veil" aria-hidden />
                         <PrepDotMatrix />
-                        <div className="ls-preparing-copy">
-                          <p className="ls-preparing-title">Preparing the avatar</p>
-                          <p>Just a moment– we're setting up the avatar for your call.</p>
-                        </div>
+                        <PreparingNotice />
                       </div>
                     ) : startRequested && prepareError ? (
                       <button type="button" className="ls-precall-start" onClick={() => setPrepareAttempt((attempt) => attempt + 1)}>
