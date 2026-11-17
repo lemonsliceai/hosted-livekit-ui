@@ -2,8 +2,7 @@ import { PlayIcon, StopIcon, VideoCameraIcon } from "./icons";
 import { Select, type SelectOption } from "./Select";
 import { VOICE_PREVIEWS } from "./sounds/voices";
 import { useVoicePreview } from "./useVoicePreview";
-
-export type LemonSliceVideoModel = "standard" | "premium" | "roleplay";
+import { type LemonSliceVideoModel } from "./videoModels";
 
 const VOICES: SelectOption<string>[] = [
   { value: "", label: "Suggested", description: "Recommended voice" },
@@ -30,55 +29,6 @@ const VOICES: SelectOption<string>[] = [
   { value: "4f14b263c4ee418b9193de6ab1123015", label: "Sadie", description: "Female, sweet and friendly", group: "female" },
   { value: "b0ecddac0c1b4b48b6a01215d6d17849", label: "Vera", description: "Female, low and husky", group: "female" },
 ];
-
-export const VIDEO_MODEL_IDS = {
-  standard: "cwm-1-lite",
-  premium: "cwm-1",
-  roleplay: "roleplay",
-} as const satisfies Record<LemonSliceVideoModel, string>;
-
-/** One entry in the video model dropdown. */
-export type LemonSliceVideoModelOption = {
-  model: LemonSliceVideoModel;
-  /** Shown in the dropdown. Defaults to FaceTime Lite, FaceTime, or Roleplay. */
-  label?: string;
-  /** Subtitle under the label, like the voice descriptions. */
-  description?: string;
-};
-
-/** What `models` accepts: an id, or an id with its own label and description. */
-export type LemonSliceVideoModelInput = LemonSliceVideoModel | LemonSliceVideoModelOption;
-
-const MODEL_LABELS: Record<LemonSliceVideoModel, string> = {
-  standard: "FaceTime Lite",
-  premium: "FaceTime",
-  roleplay: "Roleplay",
-};
-
-/** Shown when `models` is omitted. Roleplay has to be opted into. */
-export const DEFAULT_VIDEO_MODELS: readonly LemonSliceVideoModel[] = ["standard", "premium"];
-
-/**
- * Dropdown rows in the order given. The first row is the default selection.
- * Unknown ids and repeats are dropped; an empty result falls back to the defaults.
- */
-export function resolveVideoModels(
-  models: readonly LemonSliceVideoModelInput[] | undefined,
-): SelectOption<LemonSliceVideoModel>[] {
-  const rows: SelectOption<LemonSliceVideoModel>[] = [];
-  for (const entry of models ?? DEFAULT_VIDEO_MODELS) {
-    const option = typeof entry === "string" ? { model: entry } : entry;
-    // Own keys only: `in` would accept "toString" and the like off the prototype.
-    if (!option || !Object.prototype.hasOwnProperty.call(MODEL_LABELS, option.model)) continue;
-    if (rows.some((row) => row.value === option.model)) continue;
-    rows.push({
-      value: option.model,
-      label: option.label?.trim() || MODEL_LABELS[option.model],
-      ...(option.description?.trim() ? { description: option.description.trim() } : {}),
-    });
-  }
-  return rows.length > 0 ? rows : resolveVideoModels(undefined);
-}
 
 /** When the configured voice is already in the list, Suggested takes its name and the duplicate row goes away. */
 function voiceOptions(suggestedVoiceId?: string): SelectOption<string>[] {

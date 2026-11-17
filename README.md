@@ -304,9 +304,10 @@ for each row.
 />
 ```
 
-Each entry is an id (`"roleplay"`, `"premium"`, or `"standard"`) or `{ model, label?, description? }`.
-Keep descriptions to a few words; the menu is narrow and clips the rest. Repeats and
-unknown ids are dropped. A single entry hides the dropdown.
+Each entry is an id (`"roleplay"`, `"premium"`, or `"standard"`) or
+`{ model, label?, description?, transcriptOpen? }`. Keep descriptions to a few words; the
+menu is narrow and clips the rest. Repeats and unknown ids are dropped. A single entry hides
+the dropdown. `transcriptOpen` sets whether the chat starts open; on for Roleplay only by default.
 
 Before a call, the portrait is re-framed so it suits the video model. The crop for the
 selected model is prepared once per image through your `/api/lemonslice/avatar-variant` route
@@ -347,7 +348,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `startCallUrl` | Your start-call endpoint from step 4. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
-| `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description? }`. Defaults to `["standard", "premium"]`. |
+| `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description?, transcriptOpen? }`. Defaults to `["standard", "premium"]`. |
 | `theme` | `system` (default), `light`, or `dark`. |
 | `drift` | Slow float of the portrait. Off by default. |
 | `glint` | Sparkles in front of the portrait. Off by default. |

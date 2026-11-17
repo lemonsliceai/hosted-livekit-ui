@@ -1,12 +1,14 @@
+import { VIDEO_MODELS, type LemonSliceVideoModel } from "./videoModels";
+
 const AVATAR_VARIANT_PATH = "/api/lemonslice/avatar-variant";
 
 /** The crop a call starts from: bust for roleplay, portrait for the base models. */
-export function cropForModel(model: string) {
-  return model === "roleplay" ? "bust" : "portrait";
+export function cropForModel(model: LemonSliceVideoModel) {
+  return VIDEO_MODELS[model].crop;
 }
 
 /** The crops for these models, each once. */
-export function cropsForModels(models: readonly string[]) {
+export function cropsForModels(models: readonly LemonSliceVideoModel[]) {
   return [...new Set(models.map(cropForModel))];
 }
 
