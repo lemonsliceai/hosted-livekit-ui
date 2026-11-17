@@ -7,4 +7,4 @@ export {
   type LemonSliceVideoModel,
   type LemonSliceVideoModelInput,
   type LemonSliceVideoModelOption,
-} from "./PreCallSetup";
+} from "./videoModels";

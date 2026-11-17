@@ -8,16 +8,16 @@ import { CallPanel } from "./CallPanel";
 import { Composer } from "./Composer";
 import type { Suggestion } from "./SuggestionChips";
 import { playHangupSound, useCallingRingTone } from "./callSounds";
+import { PreCallSetup, PreCallStartButton } from "./PreCallSetup";
 import {
-  PreCallSetup,
-  PreCallStartButton,
   resolveVideoModels,
-  VIDEO_MODEL_IDS,
+  VIDEO_MODELS,
   type LemonSliceVideoModel,
   type LemonSliceVideoModelInput,
-} from "./PreCallSetup";
+} from "./videoModels";
 import { cropForModel, cropsForModels, fetchCrops, type CropResult } from "./avatarVariant";
 import { PrepDotMatrix } from "./PrepDotMatrix";
+import { PreparingNotice } from "./PreparingNotice";
 import { fetchSuggestedVoice } from "./voiceMatch";
 
 const NARROW_BELOW = 880;
@@ -96,7 +96,7 @@ export function LemonSliceCall({
   const rootRef = useRef<HTMLDivElement>(null);
   const onEndedRef = useRef(onEnded);
   const [narrow, setNarrow] = useState(false);
-  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [transcriptOpen, setTranscriptOpen] = useState(true);
   const [started, setStarted] = useState(false);
   const [startRequested, setStartRequested] = useState(false);
   const [voiceId, setVoiceId] = useState("");
@@ -105,10 +105,8 @@ export function LemonSliceCall({
   const modelOptions = resolveVideoModels(models);
   const [pickedModel, setVideoModel] = useState<LemonSliceVideoModel | null>(null);
   // A pick that is no longer offered falls back to the first row.
-  const videoModel =
-    pickedModel && modelOptions.some((option) => option.value === pickedModel)
-      ? pickedModel
-      : modelOptions[0].value;
+  const modelOption = modelOptions.find((option) => option.value === pickedModel) ?? modelOptions[0];
+  const videoModel = modelOption.value;
 
   const modelIds = modelOptions.map((option) => option.value);
   const crop = cropForModel(videoModel);
@@ -225,7 +223,6 @@ export function LemonSliceCall({
   useCallingRingTone(calling);
 
   const end = () => {
-    setTranscriptOpen(false);
     setStarted(false);
     setStartRequested(false);
     call.end();
@@ -255,10 +252,10 @@ export function LemonSliceCall({
   const beginCall = (imageUrl: string | undefined) => {
     setStartRequested(false);
     setStarted(true);
-    setTranscriptOpen(false);
+    setTranscriptOpen(modelOption.transcriptOpen);
     call.start({
       ...(voiceId ? { voiceId } : {}),
-      model: VIDEO_MODEL_IDS[videoModel],
+      model: VIDEO_MODELS[videoModel].id,
       ...(imageUrl ? { agentImageUrl: imageUrl } : {}),
     });
   };
@@ -312,7 +309,7 @@ export function LemonSliceCall({
           edgeFade={edgeFade}
           captions={captions}
           sessionId={call.connection?.sessionId ?? null}
-          suggestions={videoModel === "roleplay" && Array.isArray(suggestions) ? suggestions : []}
+          suggestions={VIDEO_MODELS[videoModel].suggestions && Array.isArray(suggestions) ? suggestions : []}
           portraitImage={agentImageUrl}
           preCall={
             call.connection
@@ -326,10 +323,7 @@ export function LemonSliceCall({
                         {previewImage ? <img src={previewImage} alt="" className="ls-preparing-photo" /> : null}
                         <div className="ls-preparing-veil" aria-hidden />
                         <PrepDotMatrix />
-                        <div className="ls-preparing-copy">
-                          <p className="ls-preparing-title">Preparing the avatar</p>
-                          <p>Just a moment– we're setting up the avatar for your call.</p>
-                        </div>
+                        <PreparingNotice />
                       </div>
                     ) : startRequested && prepareError ? (
                       <button type="button" className="ls-precall-start" onClick={() => setPrepareAttempt((attempt) => attempt + 1)}>

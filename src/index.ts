@@ -11,7 +11,7 @@ export {
   type LemonSliceVideoModel,
   type LemonSliceVideoModelInput,
   type LemonSliceVideoModelOption,
-} from "./ui/PreCallSetup";
+} from "./ui/videoModels";
 export {
   createRoom,
   useLemonSliceCall,
