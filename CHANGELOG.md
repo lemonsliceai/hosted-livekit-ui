@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Video model ids in `models` are now the backend ids: `"cwm-1-lite"`, `"cwm-1"`, and
+  `"roleplay"`. Update your `<LemonSliceCall>`. `"standard"` and `"premium"` still work for
+  now and log a deprecation warning.
+- The chat panel starts open on Roleplay and closed on FaceTime and FaceTime Lite. Set
+  `transcriptOpen` on a `models` entry to change it.
+
 ## v0.4.0
 
 - `voiceId` on the room is optional. Leave it out to have LemonSlice pick a voice that fits the
