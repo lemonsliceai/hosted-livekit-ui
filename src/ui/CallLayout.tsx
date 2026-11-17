@@ -1,7 +1,8 @@
 "use client";
 
+import type { TrackReference } from "@livekit/components-react";
 import { useLayoutEffect, useRef, useState, type PointerEvent, type ReactNode, type RefObject } from "react";
-import { AgentImage } from "./AvatarStage";
+import { StageGlow } from "./StageGlow";
 
 const MIN_SHEET = 0.32;
 const MAX_SHEET = 0.82;
@@ -53,6 +54,7 @@ function useCardSize(
 
 export function CallLayout({
   agentImageUrl,
+  avatarTrack,
   narrow,
   transcriptOpen,
   portrait,
@@ -61,6 +63,7 @@ export function CallLayout({
   composer,
 }: {
   agentImageUrl?: string;
+  avatarTrack?: TrackReference | null;
   narrow: boolean;
   transcriptOpen: boolean;
   portrait: ReactNode;
@@ -98,7 +101,7 @@ export function CallLayout({
   return (
     <div className="flex h-full min-h-0 w-full flex-1">
       <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <AgentImage src={agentImageUrl} className="ls-glow" />
+        <StageGlow agentImageUrl={agentImageUrl} avatarTrack={avatarTrack} />
         <div ref={columnRef} className="relative z-[1] flex min-h-0 flex-1 flex-col">
           {sheet ? (
             <>

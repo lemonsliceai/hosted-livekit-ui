@@ -115,6 +115,7 @@ export function CallPanel({
     <>
       <CallLayout
         agentImageUrl={agentImageUrl}
+        avatarTrack={avatarTrack}
         narrow={narrow}
         transcriptOpen={transcriptOpen}
         portrait={
