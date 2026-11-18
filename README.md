@@ -219,8 +219,10 @@ room: async (request) => {
 **Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the
 avatar image and keeps it, so the same image always gets the same voice. The call setup asks
 the route for that voice with a GET and, when it is a listed voice, shows its name on
-**Suggested**; without the `GET` export, Suggested shows no name. If the visitor picks a voice
-other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
+**Suggested**; without the `GET` export, Suggested shows no name. Pass `voiceId` to
+`<LemonSliceCall>` to set **Suggested** in the page instead: it is shown without asking the
+route and sent when the call starts, so it overrides the room's `voiceId`. If the visitor picks
+a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
 
 ### Webhook events
 
@@ -347,6 +349,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | --- | --- |
 | `startCallUrl` | Your start-call endpoint from step 4. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
+| `voiceId` | Optional. Fish Audio voice for **Suggested**. Sent when the call starts, so it overrides the room's `voiceId`. |
 | `onEnded` | Optional. Called when the call ends. |
 | `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description?, transcriptOpen? }`. Defaults to `["standard", "premium"]`. |
 | `theme` | `system` (default), `light`, or `dark`. |
