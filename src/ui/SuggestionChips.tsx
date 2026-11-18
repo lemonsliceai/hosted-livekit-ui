@@ -135,10 +135,7 @@ export function SuggestionChips({
                 className="ls-suggestion-dismiss"
                 aria-label={`Dismiss ${pill.label}`}
                 disabled={disabled || busy != null || isDismissing}
-                onClick={(event) => {
-                  if (event.currentTarget.matches(":focus-visible")) focusNeighbor(event.currentTarget);
-                  setDismissing((current) => [...current, id]);
-                }}
+                onClick={() => setDismissing((current) => [...current, id])}
               >
                 <CloseIcon />
               </button>
@@ -205,13 +202,6 @@ function setFade(pill: HTMLElement, mask: string) {
   pill.dataset.fade = mask;
   pill.style.maskImage = mask;
   pill.style.setProperty("-webkit-mask-image", mask);
-}
-
-/** Keep keyboard focus in the row when a pill is dismissed. */
-function focusNeighbor(dismiss: HTMLElement) {
-  const item = dismiss.closest(".ls-suggestion-item");
-  const neighbor = item?.nextElementSibling ?? item?.previousElementSibling;
-  neighbor?.querySelector<HTMLElement>(".ls-suggestion")?.focus();
 }
 
 function CloseIcon() {
