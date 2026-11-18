@@ -4,6 +4,10 @@
 
 - The chat panel starts open on Roleplay and closed on FaceTime and FaceTime Lite. Set
   `transcriptOpen` on a `models` entry to change it.
+- A pill takes `chatMessage`: sent as the visitor's line in place of the label, and shown in
+  the transcript. Use it for a longer description than fits on the pill.
+- A scene pill's `prompt` is renamed `roleplayPrompt`. `prompt` still works but is deprecated;
+  `roleplayPrompt` wins when both are set.
 
 ## v0.4.0
 

@@ -6,13 +6,17 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 export type Suggestion = string | SuggestionPill;
 
 export type SuggestionPill = {
-  /** Shown on the pill and sent as the visitor's line. */
+  /** Shown on the pill. Sent as the visitor's line unless `chatMessage` is set. */
   label: string;
+  /** Sent as the visitor's line in place of the label; the transcript shows it. For a longer description than fits a pill. */
+  chatMessage?: string;
   /** Hide after this many visitor messages (spoken, typed, or a tapped pill). Omit to keep it for the call. */
   turns?: number;
   /** Scene change: the clip ends on this public https image, which then stays as the reference. */
   image?: string;
   /** Scene pills only. Replaces the default scene clip prompt; the agent appends its scene rules. */
+  roleplayPrompt?: string;
+  /** @deprecated Use `roleplayPrompt`. Ignored when both are set. */
   prompt?: string;
 };
 

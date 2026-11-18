@@ -61,8 +61,9 @@ export type LemonSliceCallProps = {
   captions?: boolean;
   /**
    * Pills on the video once it is live. Roleplay only; omit for none. A string, or
-   * `{ label, turns?, image?, prompt? }`: `turns` hides the pill after that many visitor
-   * messages (omit to keep it), `image` makes it a scene change that ends on that image.
+   * `{ label, chatMessage?, turns?, image?, roleplayPrompt? }`: `chatMessage` is sent in place
+   * of the label, `turns` hides the pill after that many visitor messages (omit to keep it),
+   * `image` makes it a scene change that ends on that image.
    */
   suggestions?: readonly Suggestion[];
   /** Called whenever the call ends */
