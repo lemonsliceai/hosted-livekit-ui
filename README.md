@@ -218,11 +218,11 @@ room: async (request) => {
 
 Pass the avatar's voice to `<LemonSliceCall>` as `voiceId`, the same value as `voiceId` here.
 **Suggested** is that voice, and it is sent when the call starts. Without the prop, the call
-setup asks this route for the voice with a GET: the room's `voiceId` or, without one, a voice
-LemonSlice picks to fit the avatar image (the same image always gets the same voice). When it is
-a listed voice, its name shows on **Suggested**; without the `GET` export, Suggested shows no
-name. If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish
-Audio voice instead.
+setup asks this route for the voice with a GET (and shows no name without the `GET` export): the
+room's `voiceId` or, without one, a voice LemonSlice picks to fit the avatar image (the same
+image always gets the same voice). Suggested shows the voice's name when it is a listed voice.
+If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio
+voice instead.
 
 ### Webhook events
 
