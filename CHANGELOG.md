@@ -1,8 +1,10 @@
 # Changelog
 
-## Unreleased
+## v0.6.0
 
-- Suggestion pills have an X that hides the pill for the rest of the call.
+- Pills have an X that hides the pill for the rest of the call.
+- A pill takes `sticky`: an action pill stays after a tap so it can be tapped again. Off by
+  default.
 
 ## v0.5.0
 
