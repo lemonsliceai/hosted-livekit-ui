@@ -42,6 +42,8 @@ export type LemonSliceCallProps = {
   startCallUrl: string;
   /** Portrait shown before the avatar video arrives, and as the glow behind the stage. */
   agentImageUrl?: string;
+  /** Fish Audio voice for Suggested. Sent with the call, so it overrides the room's `voiceId`. */
+  voiceId?: string;
   /**
    * Video models offered, in dropdown order. The first is selected by default.
    * Each entry is an id (`"standard"`, `"premium"`) or an object with that id plus
@@ -81,6 +83,7 @@ export type LemonSliceCallProps = {
 export function LemonSliceCall({
   startCallUrl,
   agentImageUrl,
+  voiceId,
   models,
   theme = "system",
   drift = false,
@@ -100,7 +103,7 @@ export function LemonSliceCall({
   const [transcriptOpen, setTranscriptOpen] = useState(true);
   const [started, setStarted] = useState(false);
   const [startRequested, setStartRequested] = useState(false);
-  const [voiceId, setVoiceId] = useState("");
+  const [pickedVoiceId, setPickedVoiceId] = useState("");
   const [prepareAttempt, setPrepareAttempt] = useState(0);
   const [prepareError, setPrepareError] = useState<string | null>(null);
   const modelOptions = resolveVideoModels(models);
@@ -183,11 +186,13 @@ export function LemonSliceCall({
   const voiceKey = `${agentImageUrl ?? ""}|${variantsOn}|${startCallUrl}`;
   const [voice, setVoice] = useState<{ key: string; id: string | null }>();
   const serverVoice = voice?.key === voiceKey ? voice.id : undefined;
+  const fixedVoice = voiceId?.trim() || undefined;
+  const suggestedVoice = fixedVoice ?? serverVoice;
   const firstCrop = preparedImage ?? (crops ? Object.values(crops)[0] : undefined);
   const voiceImage = variantsOn ? (firstCrop ?? (prepareError ? agentImageUrl : undefined)) : agentImageUrl;
   const canAskVoice = !variantsOn || Boolean(voiceImage);
   useEffect(() => {
-    if (!canAskVoice) return;
+    if (fixedVoice || !canAskVoice) return;
     let cancelled = false;
     fetchSuggestedVoice(startCallUrl, voiceImage)
       .catch(() => null)
@@ -197,7 +202,7 @@ export function LemonSliceCall({
     return () => {
       cancelled = true;
     };
-  }, [voiceKey, voiceImage, canAskVoice]);
+  }, [voiceKey, voiceImage, canAskVoice, fixedVoice]);
 
   useEffect(() => {
     if (call.status !== "ended" && call.status !== "error") {
@@ -246,16 +251,17 @@ export function LemonSliceCall({
   // Hold the original photo until the lookup answers, so a cached crop never swaps in after it.
   const imagePending = variantsOn && crops === undefined;
   const previewImage = preparedImage ?? (imagePending ? undefined : agentImageUrl);
-  const voicePending = voiceId === "" && serverVoice === undefined;
+  const voicePending = pickedVoiceId === "" && suggestedVoice === undefined;
   const cropReady = !variantsOn || Boolean(preparedImage);
   const preparing = startRequested && ((!cropReady && !prepareError) || (voicePending && !(variantsOn && prepareError)));
   const composer = <Composer disabled className={narrow ? "flex-1" : "w-full"} onSend={() => {}} />;
+  const sentVoiceId = pickedVoiceId || fixedVoice;
   const beginCall = (imageUrl: string | undefined) => {
     setStartRequested(false);
     setStarted(true);
     setTranscriptOpen(modelOption.transcriptOpen);
     call.start({
-      ...(voiceId ? { voiceId } : {}),
+      ...(sentVoiceId ? { voiceId: sentVoiceId } : {}),
       model: VIDEO_MODELS[videoModel].id,
       ...(imageUrl ? { agentImageUrl: imageUrl } : {}),
     });
@@ -336,13 +342,13 @@ export function LemonSliceCall({
                   ) : null,
                   toolbar: configuring ? (
                     <PreCallSetup
-                      voiceId={voiceId}
-                      suggestedVoiceId={serverVoice ?? undefined}
+                      voiceId={pickedVoiceId}
+                      suggestedVoiceId={suggestedVoice ?? undefined}
                       model={videoModel}
                       modelOptions={modelOptions}
                       errorMessage={(startRequested ? prepareError : null) ?? call.errorMessage}
                       warningMessage={faceDetected === false ? NO_FACE_MESSAGE : null}
-                      onVoiceChange={setVoiceId}
+                      onVoiceChange={setPickedVoiceId}
                       onModelChange={setVideoModel}
                     />
                   ) : calling ? (
