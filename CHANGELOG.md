@@ -2,6 +2,8 @@
 
 ## v0.5.0
 
+- `voiceId` on `<LemonSliceCall>` sets the **Suggested** voice. It is shown without asking the
+  start-call route and sent when the call starts, so it overrides the room's `voiceId`.
 - The chat panel starts open on Roleplay and closed on FaceTime and FaceTime Lite. Set
   `transcriptOpen` on a `models` entry to change it.
 

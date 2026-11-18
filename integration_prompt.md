@@ -155,7 +155,7 @@ If the application has no authentication and the desired page is intentionally p
 
 ### Visitor voice
 
-**Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the avatar image and keeps it for that image. When it is a listed voice, the call setup shows its name on **Suggested**. If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
+Pass the avatar's voice to `<LemonSliceCall>` as `voiceId`, the same value as the room's `voiceId`. **Suggested** is that voice, and it is sent when the call starts. Without the prop, **Suggested** is the room's `voiceId` or, without one, a voice LemonSlice picks to fit the avatar image (the same image always gets the same voice). When it is a listed voice, the call setup shows its name on **Suggested**. If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
 
 ## 4. Configure the avatar
 
@@ -229,6 +229,7 @@ Render it somewhere appropriate in the existing UI:
 <LemonSliceCall
   startCallUrl="/api/lemonslice/start-call"
   agentImageUrl="https://cdn.example.com/avatar.png"
+  voiceId="b545c585f631496c914815291da4e893"
 />
 ```
 
@@ -246,6 +247,7 @@ Use the SAME avatar image for the client-side `agentImageUrl` and the server-sid
 | --- | --- |
 | `startCallUrl` | The application's start-call endpoint from step 3. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
+| `voiceId` | Optional. Fish Audio voice for **Suggested**, sent when the call starts. Use the same ID as `voiceId` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
 | `models` | Optional. Video models in dropdown order; the first is the default. Each entry is `"standard"` or `"premium"`, or `{ model, label?, description? }`. `description` is a short subtitle; the menu clips the rest. Repeats and unknown ids are dropped. One entry hides the dropdown. Omit it to offer Standard then Premium. |
 | `theme` | `"system"` (default), `"light"`, or `"dark"`. |

@@ -216,11 +216,13 @@ room: async (request) => {
 | `webhookUrl` | Optional. Overrides the handler's `webhookUrl` for this visitor. |
 | `agentOverrides` | Optional, Roleplay only. `actionDetectorPrompt`, `directorPrompt`, and `actionDescriptionSuffix`, each up to 40,000 characters. An empty string keeps the backend's default. |
 
-**Suggested** is the configured `voiceId`. Without one, LemonSlice picks a voice that fits the
-avatar image and keeps it, so the same image always gets the same voice. The call setup asks
-the route for that voice with a GET and, when it is a listed voice, shows its name on
-**Suggested**; without the `GET` export, Suggested shows no name. If the visitor picks a voice
-other than **Suggested**, `createRoomHandler` uses that Fish Audio voice instead.
+Pass the avatar's voice to `<LemonSliceCall>` as `voiceId`, the same value as `voiceId` here.
+**Suggested** is that voice, and it is sent when the call starts. Without the prop, the call
+setup asks this route for the voice with a GET (and shows no name without the `GET` export): the
+room's `voiceId` or, without one, a voice LemonSlice picks to fit the avatar image (the same
+image always gets the same voice). Suggested shows the voice's name when it is a listed voice.
+If the visitor picks a voice other than **Suggested**, `createRoomHandler` uses that Fish Audio
+voice instead.
 
 ### Webhook events
 
@@ -335,6 +337,7 @@ export default function Page() {
       <LemonSliceCall
         startCallUrl="/api/lemonslice/start-call"
         agentImageUrl="https://cdn.example.com/avatar.png"
+        voiceId="0984f8581bbb4e5e980a990abb865874"
       />
     </div>
   );
@@ -347,6 +350,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | --- | --- |
 | `startCallUrl` | Your start-call endpoint from step 4. |
 | `agentImageUrl` | Portrait shown before the video starts, and as the glow behind the stage. Use the same URL as `agentImageUrl` on the room. |
+| `voiceId` | Optional. Fish Audio voice for **Suggested**, sent when the call starts. Use the same ID as `voiceId` on the room. |
 | `onEnded` | Optional. Called when the call ends. |
 | `models` | Optional. Video models in dropdown order, first is default. Ids or `{ model, label?, description?, transcriptOpen? }`. Defaults to `["standard", "premium"]`. |
 | `theme` | `system` (default), `light`, or `dark`. |
