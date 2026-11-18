@@ -2,8 +2,7 @@
 
 ## Unreleased
 
-- Suggestion pills have an X that hides the pill for the rest of the call. Set
-  `dismissible: false` on a pill to leave it off.
+- Suggestion pills have an X that hides the pill for the rest of the call.
 
 ## v0.5.0
 

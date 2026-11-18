@@ -14,8 +14,6 @@ export type SuggestionPill = {
   image?: string;
   /** Scene pills only. Replaces the default scene clip prompt; the agent appends its scene rules. */
   prompt?: string;
-  /** Show an X that hides the pill for the call. Defaults to true. */
-  dismissible?: boolean;
 };
 
 /** The sending sweep on a tapped pill; the action pill is removed when it ends. */
@@ -112,7 +110,6 @@ export function SuggestionChips({
           const id = pillId(pill);
           const isBusy = busy?.id === id;
           const isDismissing = dismissing.includes(id);
-          const dismissible = pill.dismissible !== false;
           const sending = isBusy ? (busy.leaves ? "leave" : "stay") : undefined;
           return (
             <span
@@ -124,7 +121,6 @@ export function SuggestionChips({
                 type="button"
                 className="ls-suggestion"
                 data-sending={sending}
-                data-dismissible={dismissible || undefined}
                 disabled={disabled || busy != null || isDismissing}
                 onClick={() => {
                   setBusy({ id, leaves: !pill.image });
@@ -134,20 +130,18 @@ export function SuggestionChips({
                 {pill.image && <img className="ls-suggestion-thumb" src={pill.image} alt="" width={24} height={24} />}
                 <span>{pill.label}</span>
               </button>
-              {dismissible && (
-                <button
-                  type="button"
-                  className="ls-suggestion-dismiss"
-                  aria-label={`Dismiss ${pill.label}`}
-                  disabled={disabled || busy != null || isDismissing}
-                  onClick={(event) => {
-                    if (event.currentTarget.matches(":focus-visible")) focusNeighbor(event.currentTarget);
-                    setDismissing((current) => [...current, id]);
-                  }}
-                >
-                  <CloseIcon />
-                </button>
-              )}
+              <button
+                type="button"
+                className="ls-suggestion-dismiss"
+                aria-label={`Dismiss ${pill.label}`}
+                disabled={disabled || busy != null || isDismissing}
+                onClick={(event) => {
+                  if (event.currentTarget.matches(":focus-visible")) focusNeighbor(event.currentTarget);
+                  setDismissing((current) => [...current, id]);
+                }}
+              >
+                <CloseIcon />
+              </button>
             </span>
           );
         })}

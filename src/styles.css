@@ -623,7 +623,7 @@
   flex-shrink: 0;
 }
 
-.lemonslice-call .ls-suggestion[data-dismissible] {
+.lemonslice-call .ls-suggestion-item .ls-suggestion {
   padding-right: 42px;
 }
 
