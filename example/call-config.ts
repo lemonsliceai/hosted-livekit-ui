@@ -36,9 +36,10 @@ export const AGENT_OVERRIDES: AgentOverrides = {
 };
 
 // Roleplay only. Suggestions for actions. Empty shows none.
-// { label, chatMessage?, turns?, image?, roleplayPrompt? }: `label` is on the pill and is
-// sent as a chat message unless `chatMessage` is set. Then, `chatMessage` is sent instead.
+// { label, chatMessage?, turns?, sticky?, image?, roleplayPrompt? }: `label` is on the pill and
+// is sent as a chat message unless `chatMessage` is set. Then, `chatMessage` is sent instead.
 // `turns` hides the pill after that many visitor messages (omit to keep it for the call).
+// `sticky` keeps an action pill after a tap so it can be tapped again (by default it leaves).
 // `image` makes it a scene change: the action ends on that public https image, which stays as
 // her reference. `roleplayPrompt` replaces the default scene clip prompt (scene pills only).
 export const SUGGESTIONS = [

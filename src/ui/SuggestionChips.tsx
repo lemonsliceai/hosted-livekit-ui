@@ -12,6 +12,8 @@ export type SuggestionPill = {
   chatMessage?: string;
   /** Hide after this many visitor messages (spoken, typed, or a tapped pill). Omit to keep it for the call. */
   turns?: number;
+  /** Keep an action pill after a tap so it can be tapped again. Off by default. Scene pills always stay. */
+  sticky?: boolean;
   /** Scene change: the clip ends on this public https image, which then stays as the reference. */
   image?: string;
   /** Scene pills only. Replaces the default scene clip prompt; the agent appends its scene rules. */
@@ -71,7 +73,7 @@ export function SuggestionChips({
     return () => clearTimeout(timer);
   }, [dismissing]);
 
-  // Used action pills and dismissed pills are gone for the call. Scene pills stay; the current image's pill is hidden upstream.
+  // Tapped action pills leave unless sticky; dismissed pills leave. Scene pills stay; the current image's pill is hidden upstream.
   const shown = pills.filter((pill) => !used.includes(pillId(pill)));
   const layoutKey = shown.map(pillId).join("\n");
 
@@ -127,7 +129,7 @@ export function SuggestionChips({
                 data-sending={sending}
                 disabled={disabled || busy != null || isDismissing}
                 onClick={() => {
-                  setBusy({ id, leaves: !pill.image });
+                  setBusy({ id, leaves: !pill.image && !pill.sticky });
                   onSelect(pill);
                 }}
               >
