@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Suggestion pills have an X that hides the pill for the rest of the call.
+
 ## v0.5.0
 
 - `voiceId` on `<LemonSliceCall>` sets the **Suggested** voice. It is shown without asking the
