@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Suggestion pills have an X that hides the pill for the rest of the call. Set
+  `dismissible: false` on a pill to leave it off.
+
 ## v0.5.0
 
 - The chat panel starts open on Roleplay and closed on FaceTime and FaceTime Lite. Set

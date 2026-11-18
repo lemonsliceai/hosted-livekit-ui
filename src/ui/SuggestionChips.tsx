@@ -14,10 +14,14 @@ export type SuggestionPill = {
   image?: string;
   /** Scene pills only. Replaces the default scene clip prompt; the agent appends its scene rules. */
   prompt?: string;
+  /** Show an X that hides the pill for the call. Defaults to true. */
+  dismissible?: boolean;
 };
 
 /** The sending sweep on a tapped pill; the action pill is removed when it ends. */
 const BUSY_MS = 2000;
+/** How long a dismissed pill takes to close up. */
+const DISMISS_MS = 240;
 
 /** The right-edge dissolve, in px from the edge. Masked per pill: a mask on the row would kill the blur. */
 const FADE_START = 96;
@@ -42,6 +46,7 @@ export function SuggestionChips({
 }) {
   const [busy, setBusy] = useState<{ id: string; leaves: boolean } | null>(null);
   const [used, setUsed] = useState<readonly string[]>([]);
+  const [dismissing, setDismissing] = useState<readonly string[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
   const [canAdvance, setCanAdvance] = useState(false);
 
@@ -55,7 +60,16 @@ export function SuggestionChips({
     return () => clearTimeout(timer);
   }, [busy]);
 
-  // Used action pills are gone for the call. Scene pills stay; the current image's pill is hidden upstream.
+  useEffect(() => {
+    if (dismissing.length === 0) return;
+    const timer = setTimeout(() => {
+      setUsed((current) => [...current, ...dismissing]);
+      setDismissing([]);
+    }, DISMISS_MS);
+    return () => clearTimeout(timer);
+  }, [dismissing]);
+
+  // Used action pills and dismissed pills are gone for the call. Scene pills stay; the current image's pill is hidden upstream.
   const shown = pills.filter((pill) => !used.includes(pillId(pill)));
   const layoutKey = shown.map(pillId).join("\n");
 
@@ -80,7 +94,10 @@ export function SuggestionChips({
   if (shown.length === 0) return null;
 
   return (
-    <div className="ls-suggestions-wrap" style={{ "--ls-sending-ms": `${BUSY_MS}ms` } as CSSProperties}>
+    <div
+      className="ls-suggestions-wrap"
+      style={{ "--ls-sending-ms": `${BUSY_MS}ms`, "--ls-dismiss-ms": `${DISMISS_MS}ms` } as CSSProperties}
+    >
       <div
         ref={scroller}
         className="ls-suggestions"
@@ -94,21 +111,44 @@ export function SuggestionChips({
         {shown.map((pill) => {
           const id = pillId(pill);
           const isBusy = busy?.id === id;
+          const isDismissing = dismissing.includes(id);
+          const dismissible = pill.dismissible !== false;
+          const sending = isBusy ? (busy.leaves ? "leave" : "stay") : undefined;
           return (
-            <button
+            <span
               key={id}
-              type="button"
-              className="ls-suggestion"
-              data-sending={isBusy ? (busy.leaves ? "leave" : "stay") : undefined}
-              disabled={disabled || busy != null}
-              onClick={() => {
-                setBusy({ id, leaves: !pill.image });
-                onSelect(pill);
-              }}
+              className="ls-suggestion-item"
+              data-leaving={isDismissing ? "dismiss" : sending === "leave" ? "send" : undefined}
             >
-              {pill.image && <img className="ls-suggestion-thumb" src={pill.image} alt="" width={24} height={24} />}
-              <span>{pill.label}</span>
-            </button>
+              <button
+                type="button"
+                className="ls-suggestion"
+                data-sending={sending}
+                data-dismissible={dismissible || undefined}
+                disabled={disabled || busy != null || isDismissing}
+                onClick={() => {
+                  setBusy({ id, leaves: !pill.image });
+                  onSelect(pill);
+                }}
+              >
+                {pill.image && <img className="ls-suggestion-thumb" src={pill.image} alt="" width={24} height={24} />}
+                <span>{pill.label}</span>
+              </button>
+              {dismissible && (
+                <button
+                  type="button"
+                  className="ls-suggestion-dismiss"
+                  aria-label={`Dismiss ${pill.label}`}
+                  disabled={disabled || busy != null || isDismissing}
+                  onClick={(event) => {
+                    if (event.currentTarget.matches(":focus-visible")) focusNeighbor(event.currentTarget);
+                    setDismissing((current) => [...current, id]);
+                  }}
+                >
+                  <CloseIcon />
+                </button>
+              )}
+            </span>
           );
         })}
       </div>
@@ -150,7 +190,7 @@ function fadeEdge(row: HTMLElement, overflow: boolean) {
   const rowBox = row.getBoundingClientRect();
   const clearAt = rowBox.right - FADE_START;
   const goneAt = rowBox.right - FADE_END;
-  for (const pill of row.querySelectorAll<HTMLElement>(".ls-suggestion")) {
+  for (const pill of row.querySelectorAll<HTMLElement>(".ls-suggestion, .ls-suggestion-dismiss")) {
     if (!overflow) {
       setFade(pill, "");
       continue;
@@ -171,6 +211,21 @@ function setFade(pill: HTMLElement, mask: string) {
   pill.dataset.fade = mask;
   pill.style.maskImage = mask;
   pill.style.setProperty("-webkit-mask-image", mask);
+}
+
+/** Keep keyboard focus in the row when a pill is dismissed. */
+function focusNeighbor(dismiss: HTMLElement) {
+  const item = dismiss.closest(".ls-suggestion-item");
+  const neighbor = item?.nextElementSibling ?? item?.previousElementSibling;
+  neighbor?.querySelector<HTMLElement>(".ls-suggestion")?.focus();
+}
+
+function CloseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+      <path stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" d="M3.5 3.5l7 7m0-7l-7 7" />
+    </svg>
+  );
 }
 
 function ChevronRight() {

@@ -616,9 +616,60 @@
   }
 }
 
+/* A pill and its dismiss button. */
+.lemonslice-call .ls-suggestion-item {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.lemonslice-call .ls-suggestion[data-dismissible] {
+  padding-right: 42px;
+}
+
+.lemonslice-call .ls-suggestion-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 9999px;
+  padding: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.lemonslice-call .ls-suggestion-dismiss:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.lemonslice-call .ls-suggestion-dismiss:focus-visible {
+  outline: 2px solid var(--ls-focus);
+  outline-offset: 0;
+}
+
+.lemonslice-call .ls-suggestion-dismiss:disabled {
+  cursor: default;
+}
+
+.lemonslice-call .ls-suggestion:disabled:not([data-sending]) + .ls-suggestion-dismiss {
+  opacity: 0.5;
+}
+
 /* A leaving pill fades near the end of its sweep, then closes up so the row slides. */
-.lemonslice-call .ls-suggestion[data-sending="leave"] {
+.lemonslice-call .ls-suggestion-item[data-leaving] {
+  overflow: hidden;
   animation: ls-leaving var(--ls-sending-ms, 2s) linear forwards;
+}
+
+/* A dismissed pill goes at once. */
+.lemonslice-call .ls-suggestion-item[data-leaving="dismiss"] {
+  animation: ls-dismissing var(--ls-dismiss-ms, 240ms) ease-out forwards;
 }
 
 @keyframes ls-leaving {
@@ -630,15 +681,35 @@
   85% {
     opacity: 0;
     max-width: 320px;
-    padding: 0 14px;
     margin-right: 0;
   }
   to {
     opacity: 0;
     max-width: 0;
-    padding: 0;
     margin-right: -12px;
-    border-color: transparent;
+  }
+}
+
+@keyframes ls-dismissing {
+  0% {
+    opacity: 1;
+    max-width: 320px;
+  }
+  40% {
+    opacity: 0;
+    max-width: 320px;
+    margin-right: 0;
+  }
+  to {
+    opacity: 0;
+    max-width: 0;
+    margin-right: -12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lemonslice-call .ls-suggestion-item[data-leaving="dismiss"] {
+    animation-duration: 1ms;
   }
 }
 
