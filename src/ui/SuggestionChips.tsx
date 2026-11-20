@@ -189,9 +189,9 @@ function advanceSuggestions(row: HTMLDivElement | null) {
  * so the smaller pills of the narrow layout free up more of the row.
  */
 function fadeBand(row: HTMLElement) {
-  const inset = parseFloat(getComputedStyle(row).paddingRight) || 16;
-  const pill = row.querySelector<HTMLElement>(".ls-suggestion");
-  const button = pill?.offsetHeight || 44;
+  const style = getComputedStyle(row);
+  const inset = parseFloat(style.paddingRight) || 16;
+  const button = parseFloat(style.getPropertyValue("--ls-pill-height")) || 44;
   const goneAt = inset + button;
   return { goneAt, clearAt: goneAt + FADE_LENGTH };
 }
