@@ -291,6 +291,7 @@ export function LemonSliceCall({
     <div
       ref={rootRef}
       data-theme={theme === "system" ? undefined : theme}
+      data-narrow={narrow ? "" : undefined}
       className={["lemonslice-call", className ?? ""].filter(Boolean).join(" ")}
     >
       <LiveKitRoom

@@ -346,6 +346,14 @@
   white-space: nowrap;
 }
 
+/* The narrow (phone) layout: a smaller idle badge. */
+.lemonslice-call[data-narrow] .ls-idle {
+  top: 6px;
+  left: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
 .lemonslice-call .ls-preparing {
   pointer-events: none;
   position: absolute;
@@ -457,6 +465,29 @@
   flex-direction: column;
 }
 
+/* Pill sizes. The narrow (phone) layout, set on the root, picks the compact set below. */
+.lemonslice-call .ls-suggestions-wrap {
+  --ls-pill-height: 44px;
+  --ls-pill-font: 15px;
+  --ls-pill-pad: 14px;
+  --ls-pill-gap: 12px;
+  --ls-pill-inset: 16px;
+  --ls-pill-thumb: 24px;
+  --ls-pill-dismiss: 28px;
+}
+
+/* The narrow (phone) layout: smaller pills and text, tighter row. */
+.lemonslice-call[data-narrow] .ls-suggestions-wrap {
+  --ls-pill-height: 30px;
+  --ls-pill-font: 12px;
+  --ls-pill-pad: 10px;
+  /* Same as the inset, so after an advance the previous pill ends right at the card edge. */
+  --ls-pill-gap: 10px;
+  --ls-pill-inset: 10px;
+  --ls-pill-thumb: 18px;
+  --ls-pill-dismiss: 22px;
+}
+
 .lemonslice-call .ls-speech {
   pointer-events: none;
   display: flex;
@@ -497,22 +528,22 @@
 
 .lemonslice-call .ls-suggestions {
   display: flex;
-  gap: 12px;
+  gap: var(--ls-pill-gap);
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  padding: 16px;
+  padding: var(--ls-pill-inset);
   pointer-events: auto;
   scrollbar-width: none;
 }
 
 .lemonslice-call .ls-suggestions-next {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  right: calc(var(--ls-pill-inset) - 6px);
+  bottom: var(--ls-pill-inset);
   z-index: 1;
   display: flex;
-  width: 44px;
-  height: 44px;
+  width: var(--ls-pill-height);
+  height: var(--ls-pill-height);
   pointer-events: auto;
   flex-shrink: 0;
   align-items: center;
@@ -543,18 +574,18 @@
   position: relative;
   overflow: hidden;
   display: inline-flex;
-  height: 44px;
+  height: var(--ls-pill-height);
   flex-shrink: 0;
   align-items: center;
   gap: 4px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 99px;
-  padding: 0 14px;
+  padding: 0 var(--ls-pill-pad);
   background: rgba(98, 98, 98, 0.3);
   color: #ffffff;
-  font-size: 15px;
+  font-size: var(--ls-pill-font);
   font-weight: 500;
-  line-height: 22px;
+  line-height: 1.4;
   white-space: nowrap;
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(8px);
@@ -577,8 +608,8 @@
 
 /* A scene pill's end frame. */
 .lemonslice-call .ls-suggestion .ls-suggestion-thumb {
-  width: 24px;
-  height: 24px;
+  width: var(--ls-pill-thumb);
+  height: var(--ls-pill-thumb);
   margin-right: 4px;
   border-radius: 9999px;
   object-fit: cover;
@@ -623,17 +654,18 @@
   flex-shrink: 0;
 }
 
+/* Room for the dismiss button, which sits inside the pill's right edge. */
 .lemonslice-call .ls-suggestion-item .ls-suggestion {
-  padding-right: 42px;
+  padding-right: calc(var(--ls-pill-dismiss) + var(--ls-pill-pad));
 }
 
 .lemonslice-call .ls-suggestion-dismiss {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: calc((var(--ls-pill-height) - var(--ls-pill-dismiss)) / 2);
+  right: calc((var(--ls-pill-height) - var(--ls-pill-dismiss)) / 2);
   display: flex;
-  width: 28px;
-  height: 28px;
+  width: var(--ls-pill-dismiss);
+  height: var(--ls-pill-dismiss);
   align-items: center;
   justify-content: center;
   border: 0;
