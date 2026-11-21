@@ -27,9 +27,8 @@ const BUSY_MS = 2000;
 /** How long a dismissed pill takes to close up. */
 const DISMISS_MS = 240;
 
-/** The right-edge dissolve, in px from the edge. Masked per pill: a mask on the row would kill the blur. */
-const FADE_START = 96;
-const FADE_END = 64;
+/** How long the right-edge dissolve is, in px. Masked per pill: a mask on the row would kill the blur. */
+const FADE_LENGTH = 24;
 
 export function toPill(item: Suggestion): SuggestionPill {
   return typeof item === "string" ? { label: item } : item;
@@ -167,7 +166,7 @@ export function SuggestionChips({
 function advanceSuggestions(row: HTMLDivElement | null) {
   if (!row) return;
   const rowBox = row.getBoundingClientRect();
-  const limit = rowBox.right - FADE_START;
+  const limit = rowBox.right - fadeBand(row).clearAt;
   // Skip a pill that already starts at the left, even if it runs into the fade.
   const next = [...row.querySelectorAll<HTMLElement>(".ls-suggestion")].find((pill) => {
     const box = pill.getBoundingClientRect();
@@ -178,15 +177,31 @@ function advanceSuggestions(row: HTMLDivElement | null) {
     row.scrollTo({ left: row.scrollWidth, behavior });
     return;
   }
-  const delta = next.getBoundingClientRect().left - rowBox.left - 16;
+  // Land the pill at the row's own padding, so the previous pill is nearly or fully off the edge.
+  const inset = parseFloat(getComputedStyle(row).paddingLeft) || 0;
+  const delta = next.getBoundingClientRect().left - rowBox.left - inset;
   row.scrollTo({ left: row.scrollLeft + delta, behavior });
+}
+
+/**
+ * Where the dissolve runs, in px from the row's right edge: fully visible at `clearAt`, gone at
+ * `goneAt`. Sized to the "more" button (a pill-height circle, sitting just inside the row inset),
+ * so the smaller pills of the narrow layout free up more of the row.
+ */
+function fadeBand(row: HTMLElement) {
+  const style = getComputedStyle(row);
+  const inset = parseFloat(style.paddingRight) || 16;
+  const button = parseFloat(style.getPropertyValue("--ls-pill-height")) || 44;
+  const goneAt = inset + button;
+  return { goneAt, clearAt: goneAt + FADE_LENGTH };
 }
 
 /** Dissolve only the pill crossing the right edge. The mask stays on that pill, not the row. */
 function fadeEdge(row: HTMLElement, overflow: boolean) {
   const rowBox = row.getBoundingClientRect();
-  const clearAt = rowBox.right - FADE_START;
-  const goneAt = rowBox.right - FADE_END;
+  const band = fadeBand(row);
+  const clearAt = rowBox.right - band.clearAt;
+  const goneAt = rowBox.right - band.goneAt;
   for (const pill of row.querySelectorAll<HTMLElement>(".ls-suggestion, .ls-suggestion-dismiss")) {
     if (!overflow) {
       setFade(pill, "");
