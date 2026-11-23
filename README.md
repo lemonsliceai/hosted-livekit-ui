@@ -287,7 +287,7 @@ site — with or without Tailwind in your app.
 
 `<LemonSliceCall>` opens with a pre-call screen. The visitor can choose a voice
 and video model, then start the session with **Start call**. **FaceTime Lite** uses
-`cwm-1-lite`; **FaceTime** uses `cwm-1`; **Roleplay** adds on-camera actions. Hanging
+`cwm-1-lite`; **FaceTime** uses `cwm-1`; **Roleplay** adds on-camera actions that stay in place; **Story** adds actions that can change the picture and stay there. Hanging
 up ends the session, returns to that screen, and calls `onEnded`.
 
 Without a `models` prop the dropdown offers FaceTime Lite and FaceTime.
@@ -299,6 +299,7 @@ for each row.
   startCallUrl="/api/lemonslice/start-call"
   agentImageUrl="https://cdn.example.com/avatar.png"
   models={[
+    "story",
     "roleplay",
     { model: "premium", description: "Sharper video" },
     "standard",
@@ -306,10 +307,10 @@ for each row.
 />
 ```
 
-Each entry is an id (`"roleplay"`, `"premium"`, or `"standard"`) or
+Each entry is an id (`"story"`, `"roleplay"`, `"premium"`, or `"standard"`) or
 `{ model, label?, description?, transcriptOpen? }`. Keep descriptions to a few words; the
 menu is narrow and clips the rest. Repeats and unknown ids are dropped. A single entry hides
-the dropdown. `transcriptOpen` sets whether the chat starts open; on for Roleplay only by default.
+the dropdown. `transcriptOpen` sets whether the chat starts open; on for Roleplay and Story by default.
 
 Before a call, the portrait is re-framed so it suits the video model. The crop for the
 selected model is prepared once per image through your `/api/lemonslice/avatar-variant` route
@@ -358,7 +359,7 @@ If the room request fails, the component shows **Try again** and calls `onEnded`
 | `glint` | Sparkles in front of the portrait. Off by default. |
 | `edgeFade` | Dissolves the frame into the backdrop. Off by default. |
 | `captions` | Shows what the visitor is saying on the video while the transcript is closed. On by default. |
-| `suggestions` | Optional. Roleplay only. Pills on the video once it is live; omit for none. A string, or `{ label, chatMessage?, turns?, sticky?, image?, roleplayPrompt? }`: `chatMessage` is sent as the visitor's line in place of the label, for a longer description than fits a pill; `turns` hides the pill after that many visitor messages (omit to keep it); `sticky` keeps an action pill after a tap so it can be tapped again (by default it leaves); `image` makes it a scene change ending on that public `https://` image, which then stays as the reference; `roleplayPrompt` replaces the default scene clip prompt. The pill for the current image is hidden, and all pills are disabled while an action is in flight. |
+| `suggestions` | Optional. Roleplay and Story. Pills on the video once it is live; omit for none. A string, or `{ label, chatMessage?, turns?, sticky?, image?, roleplayPrompt? }`: `chatMessage` is sent as the visitor's line in place of the label, for a longer description than fits a pill; `turns` hides the pill after that many visitor messages (omit to keep it); `sticky` keeps an action pill after a tap so it can be tapped again (by default it leaves); `image` makes it a scene change ending on that public `https://` image, which then stays as the reference; `roleplayPrompt` replaces the default scene clip prompt. A scene pill only changes the picture on Story. The pill for the current image is hidden, and all pills are disabled while an action is in flight. |
 | `avatarVariants` | Optional. Re-frames the portrait for the video model, once per image, then cached. On by default; `false` uses the image as is. |
 | `className` | Optional, for positioning. |
 

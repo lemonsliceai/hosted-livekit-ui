@@ -62,7 +62,7 @@ export type LemonSliceCallProps = {
   /** Shows what the visitor is saying on the video while the transcript is closed. On by default. */
   captions?: boolean;
   /**
-   * Pills on the video once it is live. Roleplay only; omit for none. A string, or
+   * Pills on the video once it is live. Roleplay and Story; omit for none. A string, or
    * `{ label, chatMessage?, turns?, sticky?, image?, roleplayPrompt? }`: `chatMessage` is sent
    * in place of the label, `turns` hides the pill after that many visitor messages (omit to
    * keep it), `sticky` keeps an action pill after a tap, `image` makes it a scene change that
@@ -73,7 +73,7 @@ export type LemonSliceCallProps = {
   onEnded?: () => void;
   /**
    * Crops prepare in the background through `/api/lemonslice/avatar-variant`. A base model uses
-   * the portrait crop and roleplay uses the bust crop. Every offered model's crop is looked up,
+   * the portrait crop and Roleplay and Story use the bust crop. Every offered model's crop is looked up,
    * and only the selected one is generated. The preparing screen shows after
    * Start, and only when that crop is not ready yet. Set false to skip crop prep.
    */

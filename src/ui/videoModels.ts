@@ -1,6 +1,6 @@
 import type { SelectOption } from "./Select";
 
-export type LemonSliceVideoModel = "standard" | "premium" | "roleplay";
+export type LemonSliceVideoModel = "standard" | "premium" | "roleplay" | "story";
 
 type VideoModelDefaults = {
   /** Model id sent to the room. */
@@ -18,16 +18,17 @@ export const VIDEO_MODELS = {
   standard: { id: "cwm-1-lite", label: "FaceTime Lite", crop: "portrait", transcriptOpen: false, suggestions: false },
   premium: { id: "cwm-1", label: "FaceTime", crop: "portrait", transcriptOpen: false, suggestions: false },
   roleplay: { id: "roleplay", label: "Roleplay", crop: "bust", transcriptOpen: true, suggestions: true },
+  story: { id: "story", label: "Story", crop: "bust", transcriptOpen: true, suggestions: true },
 } as const satisfies Record<LemonSliceVideoModel, VideoModelDefaults>;
 
 /** One entry in the video model dropdown. */
 export type LemonSliceVideoModelOption = {
   model: LemonSliceVideoModel;
-  /** Shown in the dropdown. Defaults to FaceTime Lite, FaceTime, or Roleplay. */
+  /** Shown in the dropdown. Defaults to FaceTime Lite, FaceTime, Roleplay, or Story. */
   label?: string;
   /** Subtitle under the label, like the voice descriptions. */
   description?: string;
-  /** Chat panel open when the call starts. On for roleplay only by default. */
+  /** Chat panel open when the call starts. On for Roleplay and Story by default. */
   transcriptOpen?: boolean;
 };
 
