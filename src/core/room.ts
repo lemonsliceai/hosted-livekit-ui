@@ -15,7 +15,7 @@ export type StartCallOptions = {
   /** Fish Audio voice ID selected by the visitor. Omit it to use the suggested voice. */
   voiceId?: string;
   /** LemonSlice avatar model for this call. */
-  model?: "cwm-1-lite" | "cwm-1" | "roleplay";
+  model?: "cwm-1-lite" | "cwm-1" | "roleplay" | "story";
   /** Edited image to use instead of the server's configured image. */
   agentImageUrl?: string;
 };
