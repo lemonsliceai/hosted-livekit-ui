@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import "@lemonslice/hosted-call/styles.css";
@@ -12,6 +12,12 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "LemonSlice call — dev harness",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

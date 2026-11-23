@@ -31,7 +31,7 @@ export function Composer({
 
   return (
     <form
-      className={`flex h-11 min-w-0 items-center rounded-[22px] bg-[var(--ls-composer-bg)] pr-2 ${className}`}
+      className={`ls-composer flex h-11 min-w-0 items-center rounded-full pr-2 ${className}`}
       onSubmit={(event) => {
         event.preventDefault();
         submit();
@@ -46,7 +46,7 @@ export function Composer({
         autoComplete="off"
         disabled={disabled || sending}
         maxLength={2000}
-        className="min-w-0 flex-1 bg-transparent pl-4 text-sm tracking-[-0.125px] text-[var(--ls-composer-fg)] placeholder:text-[var(--ls-placeholder)] disabled:opacity-50"
+        className="min-w-0 flex-1 bg-transparent pl-4 text-base leading-6 text-[var(--ls-composer-fg)] placeholder:text-[var(--ls-placeholder)] disabled:opacity-50"
       />
       <button
         type="submit"

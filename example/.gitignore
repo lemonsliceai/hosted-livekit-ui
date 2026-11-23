@@ -18,3 +18,7 @@ characters/
 
 # Call logs from the example app
 logs/
+
+# Local HTTPS certs and old simulator captures
+certificates
+keyboard-shots/

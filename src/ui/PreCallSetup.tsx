@@ -100,8 +100,10 @@ export function PreCallSetup({
   modelOptions,
   errorMessage,
   warningMessage = null,
+  hideVoice = false,
   onVoiceChange,
   onModelChange,
+  onStart,
 }: {
   voiceId: string;
   /** Fish Audio voice the server uses when the visitor leaves Suggested selected. */
@@ -112,8 +114,11 @@ export function PreCallSetup({
   errorMessage: string | null;
   /** Shown under the controls when there is no error, e.g. when the photo has no face. */
   warningMessage?: string | null;
+  /** The phone frame has the model picker only. */
+  hideVoice?: boolean;
   onVoiceChange: (voiceId: string) => void;
   onModelChange: (model: LemonSliceVideoModel) => void;
+  onStart?: () => void;
 }) {
   const preview = useVoicePreview();
   const options = voiceOptions(suggestedVoiceId);
@@ -123,8 +128,9 @@ export function PreCallSetup({
     : undefined;
 
   return (
-    <div className="flex w-full flex-col gap-3">
-      <div className="flex w-full gap-3">
+    <div className="ls-precall">
+      <div className={hideVoice ? "flex w-full flex-col gap-3" : "flex w-full gap-3"}>
+        {!hideVoice && (
         <Select
           label="Voice"
           value={voiceId}
@@ -161,6 +167,7 @@ export function PreCallSetup({
           ]}
           onChange={onVoiceChange}
         />
+        )}
         {showModels && (
           <Select label="Video model" value={model} options={modelOptions} onChange={onModelChange} />
         )}
@@ -170,6 +177,7 @@ export function PreCallSetup({
       ) : (
         warningMessage && <p className="ls-warning self-center">{warningMessage}</p>
       )}
+      {onStart ? <PreCallStartButton errorMessage={errorMessage} onStart={onStart} /> : null}
     </div>
   );
 }

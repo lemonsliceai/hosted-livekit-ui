@@ -6,9 +6,10 @@ import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "re
 import { AgentImage } from "./AvatarStage";
 
 /**
- * Dark wash behind the stage. The picture is painted small, blurred there, and
- * scaled up, so the blur runs on a few thousand pixels instead of the full frame.
- * The still stays until a real video frame is in.
+ * Dark wash behind the desktop stage. The picture is painted small, blurred
+ * there, and scaled up, so the blur runs on a few thousand pixels instead of
+ * the full frame. The still stays until a real video frame is in.
+ * The phone letterbox stays black, so this is not mounted on the narrow layout.
  */
 export function StageGlow({
   agentImageUrl,

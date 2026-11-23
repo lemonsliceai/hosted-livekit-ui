@@ -15,6 +15,8 @@ import { useTranscript, type TranscriptMessage } from "./useTranscript";
 
 /** Worker → page: busy/idle as an action starts and ends; a done scene clip's new image. */
 const AGENT_EVENTS_TOPIC = "agent/events";
+/** The JPEG of a scene she just landed on. The data message only names this stream. */
+const SCENE_IMAGE_TOPIC = "ls.scene-image";
 /** Page → worker: a scene pill was tapped. Sent just before the pill's text goes as a typed line. */
 const SCENE_REQUEST_TOPIC = "ls.scene-request";
 
@@ -103,26 +105,40 @@ export function CallPanel({
   }, [avatarTrack, onAvatarReady]);
 
   const connected = !preCall;
+  const ringing = Boolean(preCall?.calling) || (connected && !avatarTrack);
+  const pillsNode =
+    pills.length > 0 && avatarTrack ? (
+      <SuggestionChips
+        pills={pills}
+        disabled={actionBusy}
+        onSelect={(pill) => {
+          void select(pill).catch((error: unknown) => {
+            console.error("[lemonslice] could not send the message:", error);
+          });
+        }}
+      />
+    ) : null;
   const composer = (
     <Composer
       disabled={!connected}
-      className={narrow ? "flex-1" : "w-full"}
+      className="w-full"
       onSend={send}
     />
   );
 
   return (
-    <>
+    <div className="flex h-full min-h-0 w-full flex-col">
       <CallLayout
         agentImageUrl={agentImageUrl}
         avatarTrack={avatarTrack}
         narrow={narrow}
         transcriptOpen={transcriptOpen}
+        onToggleTranscript={onToggleTranscript}
         portrait={
           <AvatarStage
             agentImageUrl={agentImageUrl}
             avatarTrack={avatarTrack}
-            calling={connected ? !avatarTrack : Boolean(preCall?.calling)}
+            calling={false}
             pending={preCall?.pending}
             overlay={preCall?.overlay}
             caption={caption}
@@ -130,49 +146,44 @@ export function CallPanel({
             drift={drift}
             glint={glint}
             edgeFade={edgeFade}
-            suggestions={
-              pills.length > 0 && avatarTrack ? (
-                <SuggestionChips
-                  pills={pills}
-                  disabled={actionBusy}
-                  onSelect={(pill) => {
-                    void select(pill).catch((error: unknown) => {
-                      console.error("[lemonslice] could not send the message:", error);
-                    });
-                  }}
-                />
-              ) : null
-            }
+            suggestions={!narrow && !transcriptOpen ? pillsNode : null}
           />
         }
-        toolbar={
-          preCall ? (
+        controls={
+          (connected && avatarTrack) || (ringing && narrow) ? (
+            <CallControlsBar
+              grouped={narrow}
+              hangupFirst={narrow}
+              micEnabled={micEnabled}
+              micDisabled={Boolean(preCall?.calling) || micPending}
+              muted={!micEnabled}
+              onToggleMic={() => void toggleMic()}
+              onHangUp={onEnd}
+              transcriptOpen={transcriptOpen}
+              transcriptDisabled={Boolean(preCall?.calling)}
+              onToggleTranscript={onToggleTranscript}
+            />
+          ) : null
+        }
+        dock={
+          ringing ? (
+            <p className="ls-calling">Calling...</p>
+          ) : preCall?.toolbar ? (
             preCall.toolbar
-          ) : (
-          <CallControlsBar
-            compact={narrow && transcriptOpen}
-            micEnabled={micEnabled}
-            micDisabled={micPending}
-            muted={!micEnabled}
-            onToggleMic={() => void toggleMic()}
-            onHangUp={onEnd}
-            transcriptOpen={transcriptOpen}
-            onToggleTranscript={onToggleTranscript}
-            composer={narrow && transcriptOpen ? composer : undefined}
-          />
-          )
+          ) : null
         }
+        suggestions={narrow || transcriptOpen ? pillsNode : null}
         messages={
           <TranscriptThread
             messages={transcript.messages}
-            fade={narrow}
-            className={narrow ? "px-1 pb-4 pt-6" : "px-8 pb-6 pt-8"}
+            fade={narrow && transcriptOpen}
+            className={narrow ? "min-h-0 flex-1" : "min-h-0 flex-1 px-6 pb-4 pt-6"}
           />
         }
         composer={composer}
       />
       <RoomAudioRenderer />
-    </>
+    </div>
   );
 }
 
@@ -215,19 +226,40 @@ function useSceneImage(room: Room, initial: string | undefined, sessionId: strin
   }, [initial, sessionId]);
 
   useEffect(() => {
+    const frames = new Map<string, string>();
+    let wanted: string | null = null;
+    const show = (id: string) => {
+      const url = frames.get(id);
+      if (url) setImage(url);
+      else wanted = id;
+    };
+    room.registerByteStreamHandler(SCENE_IMAGE_TOPIC, async (reader) => {
+      const bytes = await reader.readAll();
+      const merged = new Uint8Array(bytes.reduce((total, chunk) => total + chunk.byteLength, 0));
+      let offset = 0;
+      for (const chunk of bytes) {
+        merged.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      const url = URL.createObjectURL(new Blob([merged], { type: reader.info.mimeType || "image/jpeg" }));
+      frames.set(reader.info.id, url);
+      if (wanted === reader.info.id) setImage(url);
+    });
     const onData = (payload: Uint8Array, _participant: Participant | undefined, _kind: unknown, topic?: string) => {
       if (topic !== AGENT_EVENTS_TOPIC) return;
-      let data: { type?: unknown; status?: unknown; image?: unknown };
+      let data: { type?: unknown; status?: unknown; image?: unknown; image_stream?: unknown };
       try {
         data = JSON.parse(new TextDecoder().decode(payload)) as typeof data;
       } catch {
         return;
       }
-      if (data.type !== "scene" || data.status !== "done" || typeof data.image !== "string") return;
-      setImage(data.image);
+      if (data.type !== "scene" || data.status !== "done") return;
+      if (typeof data.image === "string") setImage(data.image);
+      else if (typeof data.image_stream === "string") show(data.image_stream);
     };
     room.on(RoomEvent.DataReceived, onData);
     return () => {
+      room.unregisterByteStreamHandler(SCENE_IMAGE_TOPIC);
       room.off(RoomEvent.DataReceived, onData);
     };
   }, [room]);

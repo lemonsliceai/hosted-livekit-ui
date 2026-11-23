@@ -3,14 +3,11 @@
 import { LiveKitRoom } from "@livekit/components-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLemonSliceCall } from "../core/useLemonSliceCall";
-import { CallControlsBar } from "./CallControlsBar";
 import { CallPanel } from "./CallPanel";
-import { Composer } from "./Composer";
 import type { Suggestion } from "./SuggestionChips";
 import { playHangupSound, useCallingRingTone } from "./callSounds";
 import {
   PreCallSetup,
-  PreCallStartButton,
   resolveVideoModels,
   VIDEO_MODEL_IDS,
   type LemonSliceVideoModel,
@@ -251,7 +248,6 @@ export function LemonSliceCall({
   const voicePending = voiceId === "" && serverVoice === undefined;
   const cropReady = !variantsOn || Boolean(preparedImage);
   const preparing = startRequested && ((!cropReady && !prepareError) || (voicePending && !(variantsOn && prepareError)));
-  const composer = <Composer disabled className={narrow ? "flex-1" : "w-full"} onSend={() => {}} />;
   const beginCall = (imageUrl: string | undefined) => {
     setStartRequested(false);
     setStarted(true);
@@ -335,11 +331,9 @@ export function LemonSliceCall({
                       <button type="button" className="ls-precall-start" onClick={() => setPrepareAttempt((attempt) => attempt + 1)}>
                         Try again
                       </button>
-                    ) : (
-                      <PreCallStartButton errorMessage={call.errorMessage} onStart={start} />
-                    )
+                    ) : null
                   ) : null,
-                  toolbar: configuring ? (
+                  toolbar: configuring && !preparing ? (
                     <PreCallSetup
                       voiceId={voiceId}
                       suggestedVoiceId={serverVoice ?? undefined}
@@ -349,18 +343,7 @@ export function LemonSliceCall({
                       warningMessage={faceDetected === false ? NO_FACE_MESSAGE : null}
                       onVoiceChange={setVoiceId}
                       onModelChange={setVideoModel}
-                    />
-                  ) : calling ? (
-                    <CallControlsBar
-                      compact={narrow && showTranscript}
-                      micEnabled={false}
-                      micDisabled
-                      muted
-                      onToggleMic={() => {}}
-                      onHangUp={hangUp}
-                      transcriptOpen={transcriptOpen}
-                      onToggleTranscript={() => setTranscriptOpen((open) => !open)}
-                      composer={narrow && showTranscript ? composer : undefined}
+                      onStart={start}
                     />
                   ) : null,
                 }

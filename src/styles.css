@@ -71,8 +71,8 @@
     --ls-start-bg-hover: #f4f4f5;
     --ls-start-fg: #000000;
     --ls-start-border: rgba(255, 255, 255, 0.15);
-    --ls-glass: rgba(255, 255, 255, 0.1);
-    --ls-glass-hover: rgba(255, 255, 255, 0.16);
+    --ls-glass: rgba(0, 0, 0, 0.4);
+    --ls-glass-hover: rgba(0, 0, 0, 0.55);
     --ls-glass-border: rgba(255, 255, 255, 0.15);
     --ls-toggle-on: #ffffff;
     --ls-toggle-on-hover: #f4f4f5;
@@ -112,8 +112,8 @@
   --ls-start-bg-hover: #f4f4f5;
   --ls-start-fg: #000000;
   --ls-start-border: rgba(255, 255, 255, 0.15);
-  --ls-glass: rgba(255, 255, 255, 0.1);
-  --ls-glass-hover: rgba(255, 255, 255, 0.16);
+  --ls-glass: rgba(0, 0, 0, 0.4);
+  --ls-glass-hover: rgba(0, 0, 0, 0.55);
   --ls-glass-border: rgba(255, 255, 255, 0.15);
   --ls-toggle-on: #ffffff;
   --ls-toggle-on-hover: #f4f4f5;
@@ -199,7 +199,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: 32px;
   background: var(--ls-video-fallback);
 }
 
@@ -211,6 +211,15 @@
   border-radius: inherit;
   box-shadow: inset 0 0 0 1px var(--ls-video-border);
   pointer-events: none;
+}
+
+.ls-stage[data-narrow] .ls-card,
+.ls-stage[data-narrow] .ls-card::after {
+  border-radius: 0;
+}
+
+.ls-stage[data-narrow] .ls-card::after {
+  box-shadow: none;
 }
 
 .lemonslice-call .ls-card[data-edge-fade] {
@@ -483,6 +492,11 @@
   z-index: 3;
   display: flex;
   flex-direction: column;
+  transition: opacity 220ms ease;
+}
+
+.ls-stage[data-chrome-hidden] .ls-stage-foot {
+  opacity: 0;
 }
 
 .lemonslice-call .ls-speech {
@@ -545,13 +559,14 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 0;
   border-radius: 9999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   padding: 0;
   background: rgba(98, 98, 98, 0.3);
   color: #ffffff;
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 .lemonslice-call .ls-suggestions-next:hover {
@@ -569,14 +584,14 @@
 
 .lemonslice-call .ls-suggestion {
   position: relative;
-  overflow: hidden;
   display: inline-flex;
   height: 44px;
   flex-shrink: 0;
   align-items: center;
   gap: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 0;
   border-radius: 99px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   padding: 0 14px;
   background: rgba(98, 98, 98, 0.3);
   color: #ffffff;
@@ -585,13 +600,35 @@
   line-height: 22px;
   white-space: nowrap;
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   user-select: none;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 .lemonslice-call .ls-suggestion:hover {
   background: rgba(98, 98, 98, 0.45);
+}
+
+.lemonslice-call .ls-composer {
+  border: 0;
+  background: rgba(98, 98, 98, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* The sidebar caret slices a column through any blurred control on that panel. */
+.lemonslice-call .ls-transcript .ls-suggestion,
+.lemonslice-call .ls-transcript .ls-suggestions-next,
+.lemonslice-call .ls-transcript .ls-composer {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Keep the caret in its own layer. Otherwise Chrome invalidates a column
+   through the rounded controls above the field, at the blink rate. */
+.lemonslice-call .ls-composer input {
+  transform: translateZ(0);
 }
 
 .lemonslice-call .ls-suggestion:focus-visible {
@@ -625,22 +662,26 @@
   position: relative;
 }
 
-.lemonslice-call .ls-suggestion::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.22);
-  transform: scaleX(0);
-  transform-origin: left;
+/* The sweep exists only while a pill is sending. It is a plain rectangle; the
+   pill clips it. Overflow stays off at rest so the caret does not slice the glass. */
+.lemonslice-call .ls-suggestion[data-sending] {
+  overflow: hidden;
 }
 
 .lemonslice-call .ls-suggestion[data-sending]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  background: rgba(255, 255, 255, 0.22);
   animation: ls-sending var(--ls-sending-ms, 2s) linear forwards;
 }
 
 @keyframes ls-sending {
   to {
-    transform: scaleX(1);
+    width: 100%;
   }
 }
 
@@ -666,7 +707,7 @@
     max-width: 0;
     padding: 0;
     margin-right: -12px;
-    border-color: transparent;
+    box-shadow: none;
   }
 }
 
@@ -918,4 +959,377 @@
 .lemonslice-call .ls-fade-top {
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40px);
   mask-image: linear-gradient(to bottom, transparent, #000 40px);
+}
+
+/* The portrait fills the large viewport, so it paints behind Safari's toolbar.
+   Controls live in .ls-chrome, which stops at the visible viewport. */
+.ls-stage {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.ls-visual {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+  flex: 1 1 auto;
+  /* The wash is wider than this column. Let it paint under the transcript.
+     The call root still clips anything past the widget. */
+  overflow: visible;
+}
+
+.ls-hero {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 24px;
+  pointer-events: none;
+  container-type: size;
+}
+
+.ls-portrait-wrap {
+  position: relative;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  /* Fit the 402×638 frame inside the hero without cropping it. Full width when
+     that height fits; otherwise full height, centered, so the sides fall short. */
+  height: min(100cqh, calc(100cqw * 638 / 402));
+  aspect-ratio: 402 / 638;
+  pointer-events: auto;
+}
+
+/* 16px off the card, a 48px button, then 24px before the sidebar. The same
+   inset on the left keeps the card centered. */
+.ls-hero:has(.ls-side-controls) {
+  padding-left: 88px;
+  padding-right: 88px;
+}
+
+.ls-side-controls {
+  position: absolute;
+  bottom: 0;
+  left: calc(100% + 16px);
+  pointer-events: auto;
+}
+
+.ls-stage[data-narrow] .ls-hero {
+  align-items: center;
+  padding: 0;
+}
+
+.ls-chrome {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 100%;
+  max-height: 100dvh;
+  pointer-events: none;
+}
+
+.ls-chrome > * {
+  pointer-events: auto;
+}
+
+.ls-corner-controls {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 12px;
+  transition: opacity 220ms ease;
+}
+
+/* Sits on the video, under the controls. A tap hides them; the next tap brings them back. */
+.ls-chrome-toggle {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ls-chrome-toggle:focus,
+.ls-chrome-toggle:focus-visible {
+  outline: none;
+}
+
+.ls-chrome[data-hidden] > * {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ls-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ls-controls[data-grouped] {
+  gap: 4px;
+  width: fit-content;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.ls-controls[data-grouped] > button {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.ls-controls[data-grouped] > button.ls-on {
+  background-color: var(--ls-toggle-on);
+  color: var(--ls-toggle-on-fg);
+}
+
+.ls-controls[data-grouped] > button:first-child {
+  background-color: var(--ls-hangup);
+  color: #ffffff;
+}
+
+.ls-controls[data-grouped] > button:first-child:hover {
+  background-color: var(--ls-hangup-hover);
+}
+
+.ls-dock {
+  position: absolute;
+  z-index: 4;
+  right: 24px;
+  bottom: 24px;
+  left: 24px;
+}
+
+.ls-stage[data-narrow] .ls-chrome .ls-dock {
+  right: 28px;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  left: 28px;
+}
+
+.ls-precall {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* The fade sits on the portrait, behind the labels, so they stay readable on a light shirt. */
+.ls-dock:has(.ls-precall)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: -24px;
+  bottom: -24px;
+  left: -24px;
+  height: calc(100% + 124px);
+  border-bottom-right-radius: 32px;
+  border-bottom-left-radius: 32px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0.3) 100px);
+  pointer-events: none;
+}
+
+.ls-stage[data-narrow] .ls-dock:has(.ls-precall)::before {
+  right: -28px;
+  bottom: calc(-1 * max(28px, env(safe-area-inset-bottom)));
+  left: -28px;
+  border-radius: 0;
+}
+
+.ls-precall span[id$="-label"] {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  opacity: 1;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.ls-precall .ls-select-trigger {
+  height: 48px;
+  border: 0;
+  background: rgba(98, 98, 98, 0.3);
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 20px;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.lemonslice-call .ls-precall .ls-select-trigger:hover,
+.lemonslice-call .ls-precall .ls-select-trigger[data-open] {
+  background: rgba(98, 98, 98, 0.42);
+}
+
+.ls-precall .ls-precall-start {
+  position: static;
+  width: 100%;
+  height: 48px;
+  transform: none;
+  background: #ffffff;
+  color: #000000;
+}
+
+.ls-precall .ls-precall-start:hover {
+  background: #f4f4f5;
+}
+
+.ls-dock .ls-calling {
+  position: static;
+  display: flex;
+  width: fit-content;
+  height: 48px;
+  transform: none;
+  margin-inline: auto;
+  background: rgba(98, 98, 98, 0.3);
+  color: #ffffff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.ls-stage[data-narrow] .ls-dock .ls-calling {
+  width: 100%;
+}
+
+.ls-sheet {
+  position: absolute;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 12px;
+  z-index: 4;
+  display: flex;
+  max-height: calc(100% - 88px);
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 32px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  padding: 4px 16px 16px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition:
+    height 280ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 220ms ease;
+  touch-action: manipulation;
+}
+
+.ls-sheet[data-dragging],
+.ls-sheet:not([data-ready]) {
+  transition: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-sheet,
+  .ls-corner-controls,
+  .lemonslice-call .ls-stage-foot {
+    transition: none;
+  }
+}
+
+.ls-sheet-handle {
+  display: flex;
+  height: 22px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.ls-sheet-handle::before {
+  content: "";
+  width: 40px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.ls-sheet-log {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Closed, at rest: the transcript is not in the layout, so it cannot peek through the fade. */
+.ls-sheet[data-collapsed] .ls-sheet-log {
+  display: none;
+}
+
+.ls-sheet[data-dragging] .ls-fade-top,
+.ls-sheet:not([data-open]) .ls-fade-top {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.ls-sheet-foot {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ls-sheet .ls-suggestions {
+  touch-action: pan-x;
+}
+
+.lemonslice-call .ls-transcript {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  transform: translateZ(0);
+  display: flex;
+  width: 444px;
+  max-width: 40%;
+  height: 100%;
+  flex-shrink: 0;
+  flex-direction: column;
+  background: transparent;
+  border-left: 1px solid var(--ls-transcript-border);
+}
+
+.ls-transcript-foot {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 24px max(24px, env(safe-area-inset-bottom));
+}
+
+.ls-sheet .ls-suggestions,
+.ls-transcript-foot .ls-suggestions {
+  padding: 0;
+}
+
+.ls-sheet .ls-suggestions-next,
+.ls-transcript-foot .ls-suggestions-next {
+  right: 0;
+  bottom: 0;
 }
