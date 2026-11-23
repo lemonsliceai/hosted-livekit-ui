@@ -57,7 +57,7 @@ export type LemonSliceCallProps = {
   /** Shows what the visitor is saying on the video while the transcript is closed. On by default. */
   captions?: boolean;
   /**
-   * Pills on the video once it is live. Roleplay only; omit for none. A string, or
+   * Pills on the video once it is live. Roleplay and Story; omit for none. A string, or
    * `{ label, turns?, image?, prompt? }`: `turns` hides the pill after that many visitor
    * messages (omit to keep it), `image` makes it a scene change that ends on that image.
    */
@@ -66,7 +66,7 @@ export type LemonSliceCallProps = {
   onEnded?: () => void;
   /**
    * Crops prepare in the background through `/api/lemonslice/avatar-variant`. A base model uses
-   * the portrait crop and roleplay uses the bust crop. Every offered model's crop is looked up,
+   * the portrait crop and Roleplay and Story use the bust crop. Every offered model's crop is looked up,
    * and only the selected one is generated. The preparing screen shows after
    * Start, and only when that crop is not ready yet. Set false to skip crop prep.
    */
@@ -308,7 +308,9 @@ export function LemonSliceCall({
           edgeFade={edgeFade}
           captions={captions}
           sessionId={call.connection?.sessionId ?? null}
-          suggestions={videoModel === "roleplay" && Array.isArray(suggestions) ? suggestions : []}
+          suggestions={
+            (videoModel === "roleplay" || videoModel === "story") && Array.isArray(suggestions) ? suggestions : []
+          }
           portraitImage={agentImageUrl}
           preCall={
             call.connection

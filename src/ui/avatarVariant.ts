@@ -1,8 +1,8 @@
 const AVATAR_VARIANT_PATH = "/api/lemonslice/avatar-variant";
 
-/** The crop a call starts from: bust for roleplay, portrait for the base models. */
+/** The crop a call starts from: bust for Roleplay and Story, portrait for the base models. */
 export function cropForModel(model: string) {
-  return model === "roleplay" ? "bust" : "portrait";
+  return model === "roleplay" || model === "story" ? "bust" : "portrait";
 }
 
 /** The crops for these models, each once. */

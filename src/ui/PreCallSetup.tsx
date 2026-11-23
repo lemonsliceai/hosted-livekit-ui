@@ -3,7 +3,7 @@ import { Select, type SelectOption } from "./Select";
 import { VOICE_PREVIEWS } from "./sounds/voices";
 import { useVoicePreview } from "./useVoicePreview";
 
-export type LemonSliceVideoModel = "standard" | "premium" | "roleplay";
+export type LemonSliceVideoModel = "standard" | "premium" | "roleplay" | "story";
 
 const VOICES: SelectOption<string>[] = [
   { value: "", label: "Suggested", description: "Recommended voice" },
@@ -35,12 +35,13 @@ export const VIDEO_MODEL_IDS = {
   standard: "cwm-1-lite",
   premium: "cwm-1",
   roleplay: "roleplay",
+  story: "story",
 } as const satisfies Record<LemonSliceVideoModel, string>;
 
 /** One entry in the video model dropdown. */
 export type LemonSliceVideoModelOption = {
   model: LemonSliceVideoModel;
-  /** Shown in the dropdown. Defaults to FaceTime Lite, FaceTime, or Roleplay. */
+  /** Shown in the dropdown. Defaults to FaceTime Lite, FaceTime, Roleplay, or Story. */
   label?: string;
   /** Subtitle under the label, like the voice descriptions. */
   description?: string;
@@ -53,6 +54,7 @@ const MODEL_LABELS: Record<LemonSliceVideoModel, string> = {
   standard: "FaceTime Lite",
   premium: "FaceTime",
   roleplay: "Roleplay",
+  story: "Story",
 };
 
 /** Shown when `models` is omitted. Roleplay has to be opted into. */
