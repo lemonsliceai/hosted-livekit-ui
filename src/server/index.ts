@@ -3,14 +3,22 @@
 import { httpsImageUrl } from "./https-image-url";
 
 /**
- * Early-access prompt overrides. Only read for models LemonSlice has enabled on
- * your account; ask us for the guide before setting these. Each field is optional
- * and capped at 40,000 characters. Omit one to keep its default.
+ * Early-access overrides. Only read for models LemonSlice has enabled on your
+ * account; ask us for the guide before setting these. Each field is optional;
+ * omit one to keep its default. Text fields are capped at 40,000 characters.
+ *
+ * Every field is sent to LemonSlice, with camelCase keys sent as snake_case, so a
+ * field LemonSlice adds later works without a new version of this package.
  */
 export type AgentOverrides = {
   actionDetectorPrompt?: string;
   directorPrompt?: string;
   actionDescriptionSuffix?: string;
+  /** Name of a LoRA the avatar's actions are generated with. Omit for none. */
+  lora?: string;
+  /** Strength of `lora`, from 0 to 2. Defaults to 1. */
+  loraScale?: number;
+  [field: string]: string | number | boolean | undefined;
 };
 
 export type AvatarConfig = {
@@ -28,25 +36,29 @@ export type AvatarConfig = {
 
 const MAX_OVERRIDE_LENGTH = 40000;
 
-const OVERRIDE_FIELDS = [
-  ["actionDetectorPrompt", "action_detector_prompt"],
-  ["directorPrompt", "director_prompt"],
-  ["actionDescriptionSuffix", "action_description_suffix"],
-] as const;
+type OverrideValue = string | number | boolean;
+
+function snakeCase(field: string): string {
+  return field.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
 
 function agentOverridesBody(
   overrides: AgentOverrides | undefined,
-): { agent_overrides: Record<string, string> } | { error: string } | undefined {
+): { agent_overrides: Record<string, OverrideValue> } | { error: string } | undefined {
   if (!overrides) return undefined;
-  const body: Record<string, string> = {};
-  for (const [field, wire] of OVERRIDE_FIELDS) {
-    const value = overrides[field];
+  const body: Record<string, OverrideValue> = {};
+  for (const [field, value] of Object.entries(overrides)) {
     if (value == null) continue;
-    if (typeof value !== "string") return { error: `agentOverrides.${field} must be a string` };
-    if (value.length > MAX_OVERRIDE_LENGTH) {
-      return { error: `agentOverrides.${field} must be at most ${MAX_OVERRIDE_LENGTH} characters` };
+    if (typeof value === "string") {
+      if (value.length > MAX_OVERRIDE_LENGTH) {
+        return { error: `agentOverrides.${field} must be at most ${MAX_OVERRIDE_LENGTH} characters` };
+      }
+      if (value.trim()) body[snakeCase(field)] = value;
+    } else if (typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value))) {
+      body[snakeCase(field)] = value;
+    } else {
+      return { error: `agentOverrides.${field} must be a string, a number or a boolean` };
     }
-    if (value.trim()) body[wire] = value;
   }
   return Object.keys(body).length > 0 ? { agent_overrides: body } : undefined;
 }

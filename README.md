@@ -214,7 +214,7 @@ room: async (request) => {
 | `voiceId` | Optional. Fish Audio voice ID. Leave it out to have LemonSlice pick a voice that fits the image. |
 | `agentImageUrl` | Public `https://` image of the avatar. |
 | `webhookUrl` | Optional. Overrides the handler's `webhookUrl` for this visitor. |
-| `agentOverrides` | Optional, Roleplay only. `actionDetectorPrompt`, `directorPrompt`, and `actionDescriptionSuffix`, each up to 40,000 characters. An empty string keeps the backend's default. |
+| `agentOverrides` | Optional, Roleplay only. `actionDetectorPrompt`, `directorPrompt`, and `actionDescriptionSuffix`, each up to 40,000 characters; an empty string keeps the backend's default. `lora` names a LoRA for the avatar's actions, at `loraScale` (0 to 2, default 1). Other fields are sent as they are, with camelCase keys as snake_case. |
 
 Pass the avatar's voice to `<LemonSliceCall>` as `voiceId`, the same value as `voiceId` here.
 **Suggested** is that voice, and it is sent when the call starts. Without the prop, the call
