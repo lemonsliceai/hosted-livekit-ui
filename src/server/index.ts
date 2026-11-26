@@ -11,6 +11,8 @@ export type AgentOverrides = {
   actionDetectorPrompt?: string;
   directorPrompt?: string;
   actionDescriptionSuffix?: string;
+  lora?: string;
+  loraScale?: number;
 };
 
 export type AvatarConfig = {
@@ -32,13 +34,14 @@ const OVERRIDE_FIELDS = [
   ["actionDetectorPrompt", "action_detector_prompt"],
   ["directorPrompt", "director_prompt"],
   ["actionDescriptionSuffix", "action_description_suffix"],
+  ["lora", "lora"],
 ] as const;
 
 function agentOverridesBody(
   overrides: AgentOverrides | undefined,
-): { agent_overrides: Record<string, string> } | { error: string } | undefined {
+): { agent_overrides: Record<string, string | number> } | { error: string } | undefined {
   if (!overrides) return undefined;
-  const body: Record<string, string> = {};
+  const body: Record<string, string | number> = {};
   for (const [field, wire] of OVERRIDE_FIELDS) {
     const value = overrides[field];
     if (value == null) continue;
@@ -48,6 +51,7 @@ function agentOverridesBody(
     }
     if (value.trim()) body[wire] = value;
   }
+  if (overrides.loraScale != null) body.lora_scale = overrides.loraScale;
   return Object.keys(body).length > 0 ? { agent_overrides: body } : undefined;
 }
 
