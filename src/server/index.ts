@@ -11,9 +11,7 @@ export type AgentOverrides = {
   actionDetectorPrompt?: string;
   directorPrompt?: string;
   actionDescriptionSuffix?: string;
-  /** Name of a LoRA the avatar's actions are generated with. Omit for none. */
   lora?: string;
-  /** Strength of `lora`, from 0 to 2; 1 when omitted. Ignored without `lora`. */
   loraScale?: number;
 };
 
@@ -53,12 +51,7 @@ function agentOverridesBody(
     }
     if (value.trim()) body[wire] = value;
   }
-  if (overrides.loraScale != null) {
-    if (typeof overrides.loraScale !== "number" || !Number.isFinite(overrides.loraScale)) {
-      return { error: "agentOverrides.loraScale must be a number" };
-    }
-    body.lora_scale = overrides.loraScale;
-  }
+  if (overrides.loraScale != null) body.lora_scale = overrides.loraScale;
   return Object.keys(body).length > 0 ? { agent_overrides: body } : undefined;
 }
 
