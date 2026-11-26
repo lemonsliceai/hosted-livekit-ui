@@ -1,13 +1,5 @@
 # Changelog
 
-## Unreleased
-
-- `agentOverrides` takes `lora` and `loraScale`: the avatar's actions are generated with that
-  LoRA, at that strength (0 to 2, default 1). Needs a LemonSlice server update.
-- Every `agentOverrides` field is now sent (camelCase keys as snake_case), so fields added on the
-  LemonSlice side work without a new version of this package. Fields LemonSlice does not use are
-  ignored.
-
 ## v0.6.0
 
 - Pills have an X that hides the pill for the rest of the call.

@@ -16,7 +16,7 @@ export type AgentOverrides = {
   actionDescriptionSuffix?: string;
   /** Name of a LoRA the avatar's actions are generated with. Omit for none. */
   lora?: string;
-  /** Strength of `lora`, from 0 to 2. Defaults to 1. */
+  /** Strength of `lora`, from 0 to 2; 1 when omitted. Ignored without `lora`. */
   loraScale?: number;
   [field: string]: string | number | boolean | undefined;
 };
