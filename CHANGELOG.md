@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.7.0
+## Unreleased
 
 - `agentOverrides` takes `lora` and `loraScale`: the avatar's actions are generated with that
   LoRA, at that strength (0 to 2, default 1). Needs a LemonSlice server update.
